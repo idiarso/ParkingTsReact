@@ -8,34 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project setup with TypeScript
-- PostgreSQL database integration with TypeORM
-- Entity models:
-  - User (with role-based authentication)
-  - Vehicle (for tracking parked vehicles)
-  - ParkingSession (for managing parking transactions)
-  - Rate (for parking fee calculations)
-- Environment configuration setup
-- Database connection with proper error handling
-- Timestamp tracking for all entities:
-  - Entry and exit times for parking sessions
-  - Creation and update timestamps for all records
-  - Payment timestamp tracking
-
-### Fixed
-- PostgreSQL authentication configuration
-- TypeORM entity path resolution
-- Database connection error handling
+- Initial project setup with TypeScript and PostgreSQL database
+- Core entity models (User, Vehicle, ParkingSession, Rate)
+- Authentication middleware with JWT
+- Parking rate management system
+- Real-time parking session tracking
+- Enhanced receipt generation system with customization options:
+  - Company branding (logo, name, address, contact info)
+  - Barcode and QR code support
+  - VAT calculation and display
+  - Multi-currency and locale support
+  - Customizable themes and layouts
+  - Social media integration in footer
+- Batch receipt download functionality:
+  - Multiple format support (PDF, Excel)
+  - Customizable filters (date range, vehicle type, status)
+  - Sorting options
+  - ZIP archive generation
+  - Bulk processing capabilities
 
 ### Changed
-- Updated database configuration to use environment variables
-- Modified entity paths to use absolute paths for better reliability
+- Updated database configuration for better TypeORM entity path resolution
+- Enhanced parking session management with additional fields
+- Improved receipt generation workflow with format customization
+- Restructured API endpoints for better organization
+
+### Fixed
+- PostgreSQL authentication issues
+- TypeORM entity path resolution
+- Database connection configuration
+- TypeScript compilation errors in gate components
 
 ## [0.1.0] - 2024-03-10
+
 ### Added
-- Initial release
-- Basic project structure
-- Core functionality implementation
+- Initial project structure
+- Basic parking management functionality
+- Entry and exit gate components
+- Rate calculation system
+- Database schema and migrations
 
 ## [0.1.6] - 2024-03-10
 

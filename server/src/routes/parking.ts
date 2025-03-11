@@ -1,101 +1,20 @@
 import { Router } from 'express';
-import { ParkingSession, Vehicle, Rate } from '../entities';
+import { ParkingSession } from '../entities';
 import { AppDataSource } from '../config/database';
 import { authenticate } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import { IsNull } from 'typeorm';
+import { ParkingController } from '../controllers/ParkingController';
 
 const router = Router();
 const parkingRepository = AppDataSource.getRepository(ParkingSession);
-const vehicleRepository = AppDataSource.getRepository(Vehicle);
-const rateRepository = AppDataSource.getRepository(Rate);
+const parkingController = new ParkingController();
 
 // Start parking session
-router.post('/entry', authenticate, async (req, res, next) => {
-  try {
-    const { licensePlate, vehicleType, imageUrl } = req.body;
-
-    // Find or create vehicle
-    let vehicle = await vehicleRepository.findOne({
-      where: { licensePlate }
-    });
-
-    if (!vehicle) {
-      vehicle = vehicleRepository.create({
-        licensePlate,
-        vehicleType,
-        imageUrl,
-        isParked: true
-      });
-      await vehicleRepository.save(vehicle);
-    } else if (vehicle.isParked) {
-      throw new AppError(400, 'Vehicle is already parked');
-    }
-
-    // Generate ticket number
-    const ticketNumber = `PKR${Date.now()}`;
-
-    // Create parking session
-    const parkingSession = parkingRepository.create({
-      vehicle,
-      ticketNumber,
-      entryTime: new Date()
-    });
-
-    await parkingRepository.save(parkingSession);
-    res.status(201).json(parkingSession);
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/entry', authenticate, parkingController.recordEntry.bind(parkingController));
 
 // End parking session
-router.post('/exit', authenticate, async (req, res, next) => {
-  try {
-    const { ticketNumber } = req.body;
-
-    const parkingSession = await parkingRepository.findOne({
-      where: { ticketNumber },
-      relations: ['vehicle']
-    });
-
-    if (!parkingSession) {
-      throw new AppError(404, 'Parking session not found');
-    }
-
-    if (parkingSession.exitTime) {
-      throw new AppError(400, 'Parking session already ended');
-    }
-
-    // Calculate parking duration and fee
-    const exitTime = new Date();
-    const duration = exitTime.getTime() - parkingSession.entryTime.getTime();
-    const hours = Math.ceil(duration / (1000 * 60 * 60));
-
-    const rate = await rateRepository.findOne({
-      where: { vehicleType: parkingSession.vehicle.vehicleType }
-    });
-
-    if (!rate) {
-      throw new AppError(404, 'Rate not found for vehicle type');
-    }
-
-    const fee = rate.baseRate + (hours * rate.hourlyRate);
-
-    // Update parking session
-    parkingSession.exitTime = exitTime;
-    parkingSession.fee = fee;
-    await parkingRepository.save(parkingSession);
-
-    // Update vehicle status
-    parkingSession.vehicle.isParked = false;
-    await vehicleRepository.save(parkingSession.vehicle);
-
-    res.json(parkingSession);
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/exit', authenticate, parkingController.processExit.bind(parkingController));
 
 // Get active parking sessions
 router.get('/active', authenticate, async (_req, res, next) => {
@@ -127,5 +46,15 @@ router.get('/:ticketNumber', authenticate, async (req, res, next) => {
     next(error);
   }
 });
+
+// Entry gate endpoints
+router.get('/recent-entries', authenticate, parkingController.getRecentSessions.bind(parkingController));
+
+// Exit gate endpoints
+router.get('/details/:plateNumber', authenticate, parkingController.getSessionDetails.bind(parkingController));
+
+// Statistics and reporting
+router.get('/statistics', authenticate, parkingController.getStatistics.bind(parkingController));
+router.get('/sessions', authenticate, parkingController.getRecentSessions.bind(parkingController));
 
 export default router; 
