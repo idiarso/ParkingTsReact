@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.7",
+    "@mui/material": "^6.4.7",
+    "@types/react": "^19.0.10",
+    "@types/react-router-dom": "^5.3.3",
+    "idb": "^8.0.2",
+    "jspdf": "^3.0.0",
+    "react-router-dom": "^7.3.0",
+    "tesseract.js": "^4.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/tesseract.js": "^2.0.0"
+  }
+}
