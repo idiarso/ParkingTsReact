@@ -1,236 +1,144 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Container,
-  Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography
+import React, { useState } from 'react';
+import { 
+  Box, 
+  TextField, 
+  Button, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import { styled, Theme } from '@mui/material/styles';
+import socketService from '../services/socketService';
 
-const StyledPaper = styled(Paper)(({ theme }: { theme: Theme }) => ({
-  padding: theme.spacing(2),
-  marginBottom: theme.spacing(2)
-}));
-
-const StyledTableCell = styled(TableCell)(({ theme }: { theme: Theme }) => ({
-  fontWeight: 'bold',
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.common.white
-}));
-
-interface ParkingSession {
-  id: string;
-  plateNumber: string;
-  vehicleType: string;
-  entryTime: string;
-  parkingFee?: number;
-  isCompleted: boolean;
-  driverName?: string;
-  driverPhone?: string;
-  parkingSpot?: string;
+interface VehicleExitData {
+  licensePlate: string;
+  duration: number;  // in minutes
+  fee: number;       // in currency units
+  exitTime: string;
 }
 
-interface ExitGateProps {
-  onExit: (plateNumber: string) => void;
-}
-
-const ExitGate: React.FC<ExitGateProps> = ({ onExit }) => {
-  const [plateNumber, setPlateNumber] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+const ExitGate: React.FC = () => {
+  const [licensePlate, setLicensePlate] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<ParkingSession | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<string>('');
-  const [paymentReference, setPaymentReference] = useState<string>('');
+  const [exitData, setExitData] = useState<VehicleExitData | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleSearch = async () => {
-    if (!plateNumber) {
-      setError('Please enter a plate number');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!licensePlate.trim()) {
+      setError('Please enter a license plate number');
       return;
     }
-
+    
     setLoading(true);
     setError(null);
-
+    
     try {
-      const response = await fetch(`/api/parking/details/${plateNumber}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch parking details');
-      }
-
-      setSession(data.data);
-      setError(null);
+      // In a real implementation, this would call an API to get exit details
+      // For demo purposes, we'll create mock data
+      const mockExitData: VehicleExitData = {
+        licensePlate: licensePlate.toUpperCase(),
+        duration: Math.floor(Math.random() * 120) + 30, // 30-150 minutes
+        fee: Math.floor(Math.random() * 200) + 50, // $50-$250
+        exitTime: new Date().toISOString()
+      };
+      
+      // Notify about vehicle exit through socket
+      socketService.notifyVehicleExit(
+        mockExitData.licensePlate,
+        mockExitData.duration,
+        mockExitData.fee
+      );
+      
+      setExitData(mockExitData);
+      setDialogOpen(true);
+      
+      // Reset form after processing
+      setLicensePlate('');
     } catch (err) {
-      setError((err as Error).message);
-      setSession(null);
+      setError('Failed to process exit. Please try again.');
+      console.error('Exit processing error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExit = async () => {
-    if (!session || !paymentMethod || !paymentReference) {
-      setError('Please fill in all payment details');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/parking/exit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plateNumber: session.plateNumber,
-          paymentMethod,
-          paymentReference,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to process exit');
-      }
-
-      onExit(session.plateNumber);
-      setSession(null);
-      setPlateNumber('');
-      setPaymentMethod('');
-      setPaymentReference('');
-      setError(null);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    // Simulate gate opening
+    socketService.updateGateStatus('exit-gate-1', 'open');
+    
+    // After 5 seconds, close the gate
+    setTimeout(() => {
+      socketService.updateGateStatus('exit-gate-1', 'closed');
+    }, 5000);
   };
 
   return (
-    <Container maxWidth="md">
-      <Box my={4}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Exit Gate
+    <Card sx={{ maxWidth: 600, width: '100%' }}>
+      <CardContent>
+        <Typography variant="h5" component="h2" gutterBottom>
+          Process Vehicle Exit
         </Typography>
-
-        <StyledPaper>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={8}>
-              <TextField
-                fullWidth
-                label="Plate Number"
-                value={plateNumber}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setPlateNumber(e.target.value.toUpperCase())}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                onClick={handleSearch}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Search'}
-              </Button>
-            </Grid>
-          </Grid>
-        </StyledPaper>
-
-        {error && (
-          <StyledPaper>
-            <Typography color="error">{error}</Typography>
-          </StyledPaper>
-        )}
-
-        {session && (
-          <Card>
-            <CardContent>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>Field</StyledTableCell>
-                      <StyledTableCell>Value</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Plate Number</TableCell>
-                      <TableCell>{session.plateNumber}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Vehicle Type</TableCell>
-                      <TableCell>{session.vehicleType}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Entry Time</TableCell>
-                      <TableCell>{new Date(session.entryTime).toLocaleString()}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Parking Fee</TableCell>
-                      <TableCell>${session.parkingFee?.toFixed(2) || '0.00'}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <Box mt={3}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Payment Method"
-                      value={paymentMethod}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value)}
-                      disabled={loading}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Payment Reference"
-                      value={paymentReference}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setPaymentReference(e.target.value)}
-                      disabled={loading}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Box mt={2}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    onClick={handleExit}
-                    disabled={loading}
-                  >
-                    {loading ? <CircularProgress size={24} /> : 'Process Exit'}
-                  </Button>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        )}
-      </Box>
-    </Container>
+        
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            label="License Plate Number"
+            variant="outlined"
+            value={licensePlate}
+            onChange={(e) => setLicensePlate(e.target.value)}
+            disabled={loading}
+            error={!!error}
+            helperText={error}
+            sx={{ mb: 2 }}
+          />
+          
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+            sx={{ mt: 2 }}
+          >
+            {loading ? 'Processing...' : 'Process Exit'}
+          </Button>
+        </Box>
+      </CardContent>
+      
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Exit Processed Successfully</DialogTitle>
+        <DialogContent>
+          {exitData && (
+            <Box sx={{ my: 2 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <strong>License Plate:</strong> {exitData.licensePlate}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <strong>Duration:</strong> {exitData.duration} minutes
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <strong>Fee:</strong> ${exitData.fee.toFixed(2)}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Exit Time:</strong> {new Date(exitData.exitTime).toLocaleString()}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Open Gate
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Card>
   );
 };
 

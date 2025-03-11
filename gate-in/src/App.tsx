@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import TestPage from './pages/TestPage';
+import socketService from './services/socketService';
+import GateInScreen from './components/GateInScreen';
 
 const App: React.FC = () => {
+  // Initialize socket connection when the app loads
+  useEffect(() => {
+    // Connect to the socket server
+    socketService.connect();
+
+    // Cleanup on component unmount
+    return () => {
+      socketService.disconnect();
+    };
+  }, []);
+
   return (
     <Router>
       <AppBar position="static">
@@ -22,7 +35,7 @@ const App: React.FC = () => {
 
       <Container>
         <Routes>
-          <Route path="/" element={<div>Home Page</div>} />
+          <Route path="/" element={<GateInScreen />} />
           <Route path="/test" element={<TestPage />} />
         </Routes>
       </Container>

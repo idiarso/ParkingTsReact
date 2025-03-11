@@ -9,10 +9,12 @@
     "idb": "^8.0.2",
     "jspdf": "^3.0.0",
     "react-router-dom": "^7.3.0",
+    "socket.io-client": "^4.8.1",
     "tesseract.js": "^4.1.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/socket.io-client": "^1.4.36",
     "@types/tesseract.js": "^2.0.0"
   }
 }

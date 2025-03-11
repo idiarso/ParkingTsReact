@@ -25,6 +25,7 @@ import { validateLicensePlate, formatLicensePlate } from '../utils/validation';
 import { RecentEntries } from './RecentEntries';
 import { useKeyboardShortcuts } from '../utils/shortcuts';
 import { WebcamCapture } from './WebcamCapture';
+import socketService from '../services/socketService';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -62,6 +63,9 @@ export const GateInScreen: React.FC = () => {
     if (savedEntries) {
       setRecentEntries(JSON.parse(savedEntries));
     }
+
+    // Simulate gate status update for initial connection
+    socketService.updateGateStatus('entry-gate-1', 'closed');
   }, []);
 
   const updateRecentEntries = (newEntry: VehicleEntry) => {
@@ -115,6 +119,17 @@ export const GateInScreen: React.FC = () => {
       const response = await parkingApi.recordEntry(entry);
       
       if (response.success) {
+        // Notify about vehicle entry through socket
+        socketService.notifyVehicleEntry(entry.plateNumber, entry.vehicleType);
+        
+        // Simulate gate opening
+        socketService.updateGateStatus('entry-gate-1', 'open');
+        
+        // After 5 seconds, close the gate
+        setTimeout(() => {
+          socketService.updateGateStatus('entry-gate-1', 'closed');
+        }, 5000);
+        
         updateRecentEntries(entry);
         setShowSuccess(true);
         clearForm();
