@@ -1,9 +1,10 @@
-import { io, Socket as ClientSocket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 class SocketService {
-  private socket: ClientSocket | null = null;
+  private socket: Socket | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
 
@@ -16,7 +17,7 @@ class SocketService {
 
       this.socket.on('connect', () => {
         console.log('Connected to socket server');
-        this.isRegistered = true;
+        this.registerAsGateOut();
       });
 
       this.socket.on('disconnect', () => {
@@ -25,6 +26,14 @@ class SocketService {
         this.reconnect();
       });
     }
+  }
+
+  private registerAsGateOut() {
+    if (!this.socket || this.isRegistered) return;
+    
+    this.socket.emit('register:client', { type: 'gate-out' });
+    this.isRegistered = true;
+    console.log('Registered as gate-out client');
   }
 
   private reconnect() {
@@ -47,6 +56,27 @@ class SocketService {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    this.isRegistered = false;
+  }
+
+  notifyVehicleExit(licensePlate: string, duration: number, fee: number) {
+    if (!this.socket || !this.isRegistered) {
+      console.warn('Socket not connected or not registered, cannot notify vehicle exit');
+      return;
+    }
+    
+    this.socket.emit('vehicle:exit', { licensePlate, duration, fee });
+    console.log(`Sent vehicle exit notification for ${licensePlate}`);
+  }
+
+  updateGateStatus(gateId: string, status: 'open' | 'closed') {
+    if (!this.socket || !this.isRegistered) {
+      console.warn('Socket not connected or not registered, cannot update gate status');
+      return;
+    }
+    
+    this.socket.emit('gate:status:update', { gateId, status });
+    console.log(`Sent gate status update for gate ${gateId}: ${status}`);
   }
 
   emit(event: string, data: any) {
@@ -65,6 +95,10 @@ class SocketService {
     if (this.socket) {
       this.socket.off(event, callback);
     }
+  }
+
+  isConnected(): boolean {
+    return !!this.socket && this.socket.connected && this.isRegistered;
   }
 }
 
