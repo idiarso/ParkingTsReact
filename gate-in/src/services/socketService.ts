@@ -1,9 +1,9 @@
-import { Manager, Socket } from 'socket.io-client';
+import { Manager } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 class SocketService {
-  private socket: Socket | null = null;
+  private socket: any = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
 
