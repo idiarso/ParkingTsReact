@@ -15,7 +15,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  CardMedia,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   DirectionsCar,
@@ -24,7 +27,9 @@ import {
   Print,
   CheckCircle,
   Receipt,
-  KeyboardReturn
+  KeyboardReturn,
+  ZoomIn,
+  PhotoCamera
 } from '@mui/icons-material';
 import paymentService, { VehicleEntry } from '../services/paymentService';
 import socketService from '../services/socketService';
@@ -45,6 +50,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
   
   // Calculate exit time and fee
   const exitTime = Date.now();
@@ -104,6 +110,15 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
     if (paymentComplete) {
       onReset(); // Reset for the next customer only if payment is complete
     }
+  };
+
+  // Add a new function to handle image preview
+  const handleImagePreview = () => {
+    setShowImageDialog(true);
+  };
+
+  const handleCloseImageDialog = () => {
+    setShowImageDialog(false);
   };
 
   if (isLoading) {
@@ -200,24 +215,75 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
               
               <Divider sx={{ my: 2 }} />
               
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Ticket ID
-                  </Typography>
-                  <Typography variant="body1">
-                    {vehicleEntry.ticketId}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Entry Date & Time
-                  </Typography>
-                  <Typography variant="body1">
-                    {new Date(vehicleEntry.entryTime).toLocaleString()}
-                  </Typography>
-                </Grid>
-              </Grid>
+              {/* Add entry image section */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Entry Image:
+                </Typography>
+                {vehicleEntry.image ? (
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={vehicleEntry.image}
+                      alt="Vehicle Entry Image"
+                      sx={{ borderRadius: 1, objectFit: 'cover' }}
+                    />
+                    <Tooltip title="View Larger Image">
+                      <IconButton 
+                        size="small" 
+                        sx={{ 
+                          position: 'absolute', 
+                          right: 8, 
+                          bottom: 8, 
+                          bgcolor: 'rgba(0,0,0,0.5)', 
+                          color: 'white',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' } 
+                        }}
+                        onClick={handleImagePreview}
+                      >
+                        <ZoomIn />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                ) : (
+                  <Alert severity="warning" variant="outlined" icon={<PhotoCamera />}>
+                    No entry image available
+                  </Alert>
+                )}
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Entry Time:
+                </Typography>
+                <Typography variant="body1">
+                  {new Date(vehicleEntry.entryTime).toLocaleString()}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Ticket ID:
+                </Typography>
+                <Typography variant="body1">
+                  {vehicleEntry.ticketId}
+                </Typography>
+              </Box>
+              
+              {vehicleEntry.lostTicket && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  <AlertTitle>Lost Ticket</AlertTitle>
+                  Additional penalty fee will be applied.
+                </Alert>
+              )}
+              
+              {vehicleEntry.overnight && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <AlertTitle>Overnight Vehicle</AlertTitle>
+                  Overnight rate will be applied.
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -371,6 +437,38 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
             onClick={handleCloseReceipt}
           >
             Print Another Copy
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Add Image Preview Dialog */}
+      <Dialog
+        open={showImageDialog}
+        onClose={handleCloseImageDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Vehicle Entry Image
+        </DialogTitle>
+        <DialogContent>
+          {vehicleEntry?.image ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <img 
+                src={vehicleEntry.image} 
+                alt="Vehicle Entry" 
+                style={{ maxWidth: '100%', maxHeight: '70vh' }} 
+              />
+            </Box>
+          ) : (
+            <Alert severity="warning" icon={<PhotoCamera />}>
+              No entry image available
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseImageDialog}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

@@ -31,9 +31,6 @@ import {
   AttachMoney,
   DirectionsCar
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dbService from '../../services/dbService';
 import { VehicleEntry } from '../../services/paymentService';
 
@@ -157,234 +154,230 @@ const ShiftReport: React.FC<ShiftReportProps> = ({ onClose }) => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" display="flex" alignItems="center">
-            <Assessment color="primary" sx={{ mr: 1 }} />
-            Shift Report
-          </Typography>
-          <Button variant="outlined" onClick={onClose}>
-            Close
-          </Button>
-        </Box>
-        
-        <Divider sx={{ mb: 3 }} />
-        
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={4}>
-            <DatePicker
-              label="Select Date"
-              value={date}
-              onChange={(newDate) => setDate(newDate)}
-              format="dd/MM/yyyy"
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  variant: 'outlined'
-                }
-              }}
-            />
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel>Shift</InputLabel>
-              <Select
-                value={shift}
-                label="Shift"
-                onChange={(e) => setShift(e.target.value)}
-              >
-                <MenuItem value="all">All Day</MenuItem>
-                <MenuItem value="morning">Morning (6:00 - 14:00)</MenuItem>
-                <MenuItem value="evening">Evening (14:00 - 22:00)</MenuItem>
-                <MenuItem value="night">Night (22:00 - 06:00)</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <Refresh />}
-              onClick={loadReportData}
-              disabled={isLoading || !date}
-              sx={{ height: '56px' }}
-            >
-              {isLoading ? 'Loading...' : 'Generate Report'}
-            </Button>
-          </Grid>
+    <Paper elevation={3} sx={{ p: 3 }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5" display="flex" alignItems="center">
+          <Assessment color="primary" sx={{ mr: 1 }} />
+          Shift Report
+        </Typography>
+        <Button variant="outlined" onClick={onClose}>
+          Close
+        </Button>
+      </Box>
+      
+      <Divider sx={{ mb: 3 }} />
+      
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4}>
+          <TextField
+            label="Select Date"
+            type="date"
+            value={date ? date.toISOString().split('T')[0] : ''}
+            onChange={(e) => setDate(new Date(e.target.value))}
+            fullWidth
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
         </Grid>
         
-        {error && (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+        <Grid item xs={12} md={4}>
+          <FormControl fullWidth>
+            <InputLabel>Shift</InputLabel>
+            <Select
+              value={shift}
+              label="Shift"
+              onChange={(e) => setShift(e.target.value)}
+            >
+              <MenuItem value="all">All Day</MenuItem>
+              <MenuItem value="morning">Morning (6:00 - 14:00)</MenuItem>
+              <MenuItem value="evening">Evening (14:00 - 22:00)</MenuItem>
+              <MenuItem value="night">Night (22:00 - 06:00)</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
         
-        {summary && (
-          <>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Summary - {date?.toLocaleDateString()} - {shift === 'all' ? 'All Day' : `${shift.charAt(0).toUpperCase() + shift.slice(1)} Shift`}
-              </Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" color="primary" display="flex" alignItems="center">
-                        <DirectionsCar sx={{ mr: 1 }} />
-                        Total Vehicles
-                      </Typography>
-                      <Typography variant="h4" sx={{ mt: 2 }}>
-                        {summary.totalVehicles}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" color="primary" display="flex" alignItems="center">
-                        <AttachMoney sx={{ mr: 1 }} />
-                        Total Revenue
-                      </Typography>
-                      <Typography variant="h4" sx={{ mt: 2 }}>
-                        {formatCurrency(summary.totalRevenue)}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" color="primary" display="flex" alignItems="center">
-                        <DateRange sx={{ mr: 1 }} />
-                        Report Date
-                      </Typography>
-                      <Typography variant="h4" sx={{ mt: 2 }}>
-                        {date?.toLocaleDateString()}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Box>
+        <Grid item xs={12} md={4}>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <Refresh />}
+            onClick={loadReportData}
+            disabled={isLoading || !date}
+            sx={{ height: '56px' }}
+          >
+            {isLoading ? 'Loading...' : 'Generate Report'}
+          </Button>
+        </Grid>
+      </Grid>
+      
+      {error && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {summary && (
+        <>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Summary - {date?.toLocaleDateString()} - {shift === 'all' ? 'All Day' : `${shift.charAt(0).toUpperCase() + shift.slice(1)} Shift`}
+            </Typography>
             
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>
-                  By Vehicle Type
-                </Typography>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Vehicle Type</TableCell>
-                        <TableCell align="right">Count</TableCell>
-                        <TableCell align="right">Revenue</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {Object.entries(summary.byVehicleType).map(([type, data]) => (
-                        <TableRow key={type}>
-                          <TableCell>{type}</TableCell>
-                          <TableCell align="right">{data.count}</TableCell>
-                          <TableCell align="right">{formatCurrency(data.revenue)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" color="primary" display="flex" alignItems="center">
+                      <DirectionsCar sx={{ mr: 1 }} />
+                      Total Vehicles
+                    </Typography>
+                    <Typography variant="h4" sx={{ mt: 2 }}>
+                      {summary.totalVehicles}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>
-                  By Payment Method
-                </Typography>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Payment Method</TableCell>
-                        <TableCell align="right">Count</TableCell>
-                        <TableCell align="right">Revenue</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {Object.entries(summary.byPaymentMethod).map(([method, data]) => (
-                        <TableRow key={method}>
-                          <TableCell>{method}</TableCell>
-                          <TableCell align="right">{data.count}</TableCell>
-                          <TableCell align="right">{formatCurrency(data.revenue)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" color="primary" display="flex" alignItems="center">
+                      <AttachMoney sx={{ mr: 1 }} />
+                      Total Revenue
+                    </Typography>
+                    <Typography variant="h4" sx={{ mt: 2 }}>
+                      {formatCurrency(summary.totalRevenue)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" color="primary" display="flex" alignItems="center">
+                      <DateRange sx={{ mr: 1 }} />
+                      Report Date
+                    </Typography>
+                    <Typography variant="h4" sx={{ mt: 2 }}>
+                      {date?.toLocaleDateString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
-            
-            <Typography variant="h6" gutterBottom>
-              Transaction Details
-            </Typography>
-            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>License Plate</TableCell>
-                    <TableCell>Entry Time</TableCell>
-                    <TableCell>Exit Time</TableCell>
-                    <TableCell>Duration</TableCell>
-                    <TableCell>Vehicle Type</TableCell>
-                    <TableCell align="right">Fee</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {transactions.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell>{entry.licensePlate}</TableCell>
-                      <TableCell>{new Date(entry.entryTime).toLocaleString()}</TableCell>
-                      <TableCell>{entry.exitTime ? new Date(entry.exitTime).toLocaleString() : '-'}</TableCell>
-                      <TableCell>
-                        {entry.exitTime 
-                          ? `${Math.round((new Date(entry.exitTime).getTime() - new Date(entry.entryTime).getTime()) / (1000 * 60))} min` 
-                          : '-'
-                        }
-                      </TableCell>
-                      <TableCell>{entry.vehicleType}</TableCell>
-                      <TableCell align="right">{formatCurrency(entry.fee || 0)}</TableCell>
+          </Box>
+          
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom>
+                By Vehicle Type
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Vehicle Type</TableCell>
+                      <TableCell align="right">Count</TableCell>
+                      <TableCell align="right">Revenue</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(summary.byVehicleType).map(([type, data]) => (
+                      <TableRow key={type}>
+                        <TableCell>{type}</TableCell>
+                        <TableCell align="right">{data.count}</TableCell>
+                        <TableCell align="right">{formatCurrency(data.revenue)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
             
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                variant="outlined" 
-                startIcon={<Print />} 
-                onClick={handlePrint}
-                sx={{ mr: 2 }}
-              >
-                Cetak Laporan
-              </Button>
-              <Button 
-                variant="contained" 
-                startIcon={<FileDownload />} 
-                onClick={handleExport}
-              >
-                Export
-              </Button>
-            </Box>
-          </>
-        )}
-      </Paper>
-    </LocalizationProvider>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom>
+                By Payment Method
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Payment Method</TableCell>
+                      <TableCell align="right">Count</TableCell>
+                      <TableCell align="right">Revenue</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(summary.byPaymentMethod).map(([method, data]) => (
+                      <TableRow key={method}>
+                        <TableCell>{method}</TableCell>
+                        <TableCell align="right">{data.count}</TableCell>
+                        <TableCell align="right">{formatCurrency(data.revenue)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          </Grid>
+          
+          <Typography variant="h6" gutterBottom>
+            Transaction Details
+          </Typography>
+          <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>License Plate</TableCell>
+                  <TableCell>Entry Time</TableCell>
+                  <TableCell>Exit Time</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell>Vehicle Type</TableCell>
+                  <TableCell align="right">Fee</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {transactions.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>{entry.licensePlate}</TableCell>
+                    <TableCell>{new Date(entry.entryTime).toLocaleString()}</TableCell>
+                    <TableCell>{entry.exitTime ? new Date(entry.exitTime).toLocaleString() : '-'}</TableCell>
+                    <TableCell>
+                      {entry.exitTime 
+                        ? `${Math.round((new Date(entry.exitTime).getTime() - new Date(entry.entryTime).getTime()) / (1000 * 60))} min` 
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell>{entry.vehicleType}</TableCell>
+                    <TableCell align="right">{formatCurrency(entry.fee || 0)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button 
+              variant="outlined" 
+              startIcon={<Print />} 
+              onClick={handlePrint}
+              sx={{ mr: 2 }}
+            >
+              Cetak Laporan
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<FileDownload />} 
+              onClick={handleExport}
+            >
+              Export
+            </Button>
+          </Box>
+        </>
+      )}
+    </Paper>
   );
 };
 
