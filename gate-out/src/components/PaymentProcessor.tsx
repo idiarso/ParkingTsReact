@@ -26,7 +26,6 @@ import {
   Receipt,
   KeyboardReturn
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 import paymentService, { VehicleEntry } from '../services/paymentService';
 import socketService from '../services/socketService';
 
@@ -215,7 +214,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
                     Entry Date & Time
                   </Typography>
                   <Typography variant="body1">
-                    {format(new Date(vehicleEntry.entryTime), 'yyyy-MM-dd HH:mm:ss')}
+                    {new Date(vehicleEntry.entryTime).toLocaleString()}
                   </Typography>
                 </Grid>
               </Grid>
@@ -244,7 +243,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
                   Current Time (Exit)
                 </Typography>
                 <Typography variant="body1">
-                  {format(new Date(exitTime), 'yyyy-MM-dd HH:mm:ss')}
+                  {new Date(exitTime).toLocaleString()}
                 </Typography>
               </Box>
               
@@ -292,7 +291,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
               Receipt #{Math.floor(1000000 + Math.random() * 9000000)}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom>
-              {format(new Date(), 'yyyy-MM-dd HH:mm:ss')}
+              {new Date().toLocaleString()}
             </Typography>
             
             <Divider sx={{ my: 2 }} />
@@ -321,7 +320,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
                   Entry Time:
                 </Typography>
                 <Typography variant="body1">
-                  {format(new Date(vehicleEntry.entryTime), 'yyyy-MM-dd HH:mm')}
+                  {new Date(vehicleEntry.entryTime).toLocaleString()}
                 </Typography>
               </Grid>
               
@@ -330,7 +329,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
                   Exit Time:
                 </Typography>
                 <Typography variant="body1">
-                  {format(new Date(exitTime), 'yyyy-MM-dd HH:mm')}
+                  {new Date(exitTime).toLocaleString()}
                 </Typography>
               </Grid>
               

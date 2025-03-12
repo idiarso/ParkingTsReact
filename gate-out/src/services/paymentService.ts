@@ -1,5 +1,3 @@
-import { differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
-
 // Define the rate structure
 export interface ParkingRates {
   baseRate: number;        // Base rate in IDR
@@ -62,6 +60,19 @@ const RATES: Record<string, ParkingRates> = {
   }
 };
 
+// Helper functions for time calculations
+const getMinutesDifference = (startDate: number, endDate: number): number => {
+  return Math.floor((endDate - startDate) / (1000 * 60));
+};
+
+const getHoursDifference = (startDate: number, endDate: number): number => {
+  return Math.floor((endDate - startDate) / (1000 * 60 * 60));
+};
+
+const getDaysDifference = (startDate: number, endDate: number): number => {
+  return Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+};
+
 /**
  * Calculate parking fee based on entry and exit time
  * @param entry Vehicle entry data
@@ -77,7 +88,7 @@ export const calculateParkingFee = (entry: VehicleEntry, exitTime?: number): num
   const rate = RATES[entry.vehicleType] || RATES.UNKNOWN;
   
   // Calculate duration
-  const minutes = differenceInMinutes(exitDate, entryDate);
+  const minutes = getMinutesDifference(entryDate.getTime(), exitDate.getTime());
   
   // Check grace period
   if (minutes <= rate.graceMinutes) {
@@ -85,10 +96,10 @@ export const calculateParkingFee = (entry: VehicleEntry, exitTime?: number): num
   }
   
   // Calculate days
-  const days = differenceInDays(exitDate, entryDate);
+  const days = getDaysDifference(entryDate.getTime(), exitDate.getTime());
   
   // Calculate hours, excluding full days
-  const hoursExcludingDays = differenceInHours(exitDate, entryDate) - (days * 24);
+  const hoursExcludingDays = getHoursDifference(entryDate.getTime(), exitDate.getTime()) - (days * 24);
   
   // Initialize fee with base rate
   let fee = rate.baseRate;
@@ -139,9 +150,9 @@ export const calculateDuration = (entry: VehicleEntry, exitTime?: number): strin
   const exitDate = new Date(exit);
   
   // Calculate days, hours, and minutes
-  const days = differenceInDays(exitDate, entryDate);
-  const hours = differenceInHours(exitDate, entryDate) - (days * 24);
-  const minutes = differenceInMinutes(exitDate, entryDate) - (days * 24 * 60) - (hours * 60);
+  const days = getDaysDifference(entryDate.getTime(), exitDate.getTime());
+  const hours = getHoursDifference(entryDate.getTime(), exitDate.getTime()) - (days * 24);
+  const minutes = getMinutesDifference(entryDate.getTime(), exitDate.getTime()) - (days * 24 * 60) - (hours * 60);
   
   // Format duration string
   if (days > 0) {

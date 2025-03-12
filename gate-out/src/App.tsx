@@ -1,5 +1,4 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import GateOutDashboard from './components/GateOutDashboard';
@@ -33,15 +32,11 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <Box component="main" sx={{ flexGrow: 1 }}>
-            <Routes>
-              <Route path="/" element={<GateOutDashboard />} />
-            </Routes>
-          </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          <GateOutDashboard />
         </Box>
-      </Router>
+      </Box>
     </ThemeProvider>
   );
 };

@@ -81,7 +81,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, isProcessing })
           <Grid container spacing={2} alignItems="center">
             <Grid item xs>
               <TextField
-                ref={inputRef}
+                inputRef={inputRef}
                 fullWidth
                 label="Scan or Enter Ticket ID"
                 variant="outlined"

@@ -49,11 +49,12 @@ const ExitGate: React.FC = () => {
       };
       
       // Notify about vehicle exit through socket
-      socketService.notifyVehicleExit(
-        mockExitData.licensePlate,
-        mockExitData.duration,
-        mockExitData.fee
-      );
+      socketService.notifyVehicleExit({
+        ticketId: `TK-${Date.now()}`, // Generate a mock ticket ID
+        licensePlate: mockExitData.licensePlate,
+        exitTime: mockExitData.exitTime,
+        fee: mockExitData.fee
+      });
       
       setExitData(mockExitData);
       setDialogOpen(true);
