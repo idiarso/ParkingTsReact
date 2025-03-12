@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getRepository } from 'typeorm';
+import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
@@ -9,7 +9,7 @@ export class UserController {
   // Get all users
   static async getAllUsers(_req: Request, res: Response, next: NextFunction) {
     try {
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const users = await userRepository.find({
         select: ['id', 'name', 'username', 'role', 'isActive', 'lastLogin', 'createdAt']
       });
@@ -26,7 +26,7 @@ export class UserController {
     try {
       const { id } = req.params;
       
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({ 
         where: { id },
         select: ['id', 'name', 'username', 'role', 'isActive', 'lastLogin', 'createdAt']
@@ -53,7 +53,7 @@ export class UserController {
         return next(new AppError(400, 'No update data provided'));
       }
       
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       
       // Check if user exists
       const user = await userRepository.findOne({ where: { id } });
@@ -92,7 +92,7 @@ export class UserController {
         return next(new AppError(400, 'Active status is required'));
       }
       
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       
       // Check if user exists
       const user = await userRepository.findOne({ where: { id } });
@@ -124,7 +124,7 @@ export class UserController {
     try {
       const { id } = req.params;
       
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       
       // Check if user exists
       const user = await userRepository.findOne({ where: { id } });

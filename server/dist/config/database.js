@@ -11,16 +11,28 @@ exports.AppDataSource = new typeorm_1.DataSource({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
     username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'root',
+    password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'parking_system',
     synchronize: process.env.NODE_ENV !== 'production',
-    logging: process.env.NODE_ENV !== 'production',
+    logging: true,
+    ssl: false,
+    extra: {
+        max: 25,
+        connectionTimeoutMillis: 10000,
+        options: `--client_encoding=UTF8`
+    },
     entities: [User_1.User, ParkingSession_1.ParkingSession, ParkingRate_1.ParkingRate],
     migrations: [],
     subscribers: []
 });
 const setupDatabase = async () => {
     try {
+        logger_1.logger.info('Attempting to connect to database with config:', {
+            host: process.env.DB_HOST || 'localhost',
+            port: process.env.DB_PORT || '5432',
+            username: process.env.DB_USERNAME || 'postgres',
+            database: process.env.DB_NAME || 'parking_system'
+        });
         await exports.AppDataSource.initialize();
         logger_1.logger.info('Database connection initialized');
     }

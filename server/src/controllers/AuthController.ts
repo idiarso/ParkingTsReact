@@ -4,6 +4,10 @@ import { User } from '../entities/User';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../config/database';
+import { tokenBlacklist } from '../utils/tokenBlacklist';
+import { DeepPartial } from 'typeorm';
+import bcrypt from 'bcryptjs';
+import 'express';  // Ensure Express types are loaded
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -18,14 +22,30 @@ export class AuthController {
       const user = await userRepository.findOne({ where: { username } });
 
       if (!user) {
+        logger.debug('Login failed: User not found', { username });
         return next(new AppError(401, 'Invalid credentials'));
       }
 
       if (!user.isActive) {
+        logger.debug('Login failed: Account inactive', { username });
         return next(new AppError(403, 'Account has been deactivated'));
       }
 
+      // Debug log for password validation
+      logger.debug('Attempting password validation', {
+        username,
+        hashedPassword: user.password,
+        passwordStartsWith: user.password.substring(0, 7)
+      });
+
       const isPasswordValid = await user.validatePassword(password);
+      
+      // Debug log for validation result
+      logger.debug('Password validation result', {
+        username,
+        isValid: isPasswordValid
+      });
+
       if (!isPasswordValid) {
         return next(new AppError(401, 'Invalid credentials'));
       }
@@ -48,9 +68,12 @@ export class AuthController {
         expiresIn: '24h'
       };
 
-      // Generate token
+      // Generate token with user ID and role
       const token = jwt.sign(
-        { userId: user.id },
+        { 
+          userId: user.id,
+          role: user.role 
+        },
         secret,
         options
       );
@@ -161,8 +184,21 @@ export class AuthController {
         return next(new AppError(401, 'Invalid current password'));
       }
 
-      user.password = newPassword;
-      await userRepository.save(user);
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update user data
+      const updateData: DeepPartial<User> = {
+        password: hashedPassword
+      };
+
+      // Update the password directly in the database
+      await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set(updateData)
+        .where('id = :id', { id: user.id })
+        .execute();
 
       return res.json({
         message: 'Password changed successfully'
@@ -204,6 +240,47 @@ export class AuthController {
     } catch (error) {
       logger.error('Error updating profile:', error);
       return next(new AppError(500, 'Failed to update profile'));
+    }
+  }
+
+  static async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.token;
+      
+      if (!token) {
+        return next(new AppError(400, 'No token provided'));
+      }
+
+      // Get token expiration time from JWT
+      const decoded = jwt.decode(token) as { exp?: number };
+      if (decoded.exp) {
+        // Add token to blacklist with expiration time
+        tokenBlacklist.add(token, decoded.exp * 1000); // Convert to milliseconds
+      }
+
+      // Update last logout in database
+      if (req.user?.id) {
+        const userRepository = AppDataSource.getRepository(User);
+        const lastLoginData: DeepPartial<User> = {
+          lastLogin: {
+            timestamp: new Date(),
+            ip: req.ip || 'unknown',
+            action: 'logout'
+          }
+        };
+
+        await userRepository
+          .createQueryBuilder()
+          .update(User)
+          .set(lastLoginData)
+          .where('id = :id', { id: req.user.id })
+          .execute();
+      }
+
+      return res.json({ message: 'Successfully logged out' });
+    } catch (error) {
+      logger.error('Logout error:', error);
+      return next(new AppError(500, 'Failed to logout'));
     }
   }
 } 

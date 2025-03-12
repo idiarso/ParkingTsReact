@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { getRepository, Between } from 'typeorm';
+import { Between } from 'typeorm';
 import { Receipt } from '../entities/Receipt';
 import { ParkingSession } from '../entities/ParkingSession';
 import { ParkingRate } from '../entities/ParkingRate';
+import { AppDataSource } from '../config/database';
 import { logger } from '../utils/logger';
 import { ReceiptGenerator } from '../utils/receiptGenerator';
 import { ReceiptFormat, BatchDownloadOptions } from '../types/receipt';
@@ -27,9 +28,9 @@ export class ReceiptController {
       const { parkingSessionId } = req.params;
       const { customerEmail } = req.body as { customerEmail?: string; format?: ReceiptFormat };
 
-      const parkingRepo = getRepository(ParkingSession);
-      const rateRepo = getRepository(ParkingRate);
-      const receiptRepo = getRepository(Receipt);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
+      const rateRepo = AppDataSource.getRepository(ParkingRate);
+      const receiptRepo = AppDataSource.getRepository(Receipt);
 
       const session = await parkingRepo.findOne({
         where: { id: parkingSessionId }
@@ -116,7 +117,7 @@ export class ReceiptController {
   async downloadBatch(req: Request, res: Response) {
     try {
       const options: BatchDownloadOptions = req.body;
-      const receiptRepo = getRepository(Receipt);
+      const receiptRepo = AppDataSource.getRepository(Receipt);
 
       // Build query conditions
       const where: any = {};
@@ -188,7 +189,7 @@ export class ReceiptController {
   async getReceipt(req: Request, res: Response) {
     try {
       const { receiptNumber } = req.params;
-      const receiptRepo = getRepository(Receipt);
+      const receiptRepo = AppDataSource.getRepository(Receipt);
 
       const receipt = await receiptRepo.findOne({
         where: { receiptNumber },
@@ -218,7 +219,7 @@ export class ReceiptController {
   async getUserReceipts(req: Request, res: Response) {
     try {
       const { plateNumber, limit = 10, offset = 0 } = req.query;
-      const receiptRepo = getRepository(Receipt);
+      const receiptRepo = AppDataSource.getRepository(Receipt);
 
       const [receipts, total] = await receiptRepo.findAndCount({
         where: { plateNumber: plateNumber as string },

@@ -44,16 +44,19 @@ async function createDefaultAdmin() {
             where: { username: 'admin' }
         });
         if (existingAdmin) {
-            console.log('Admin user already exists');
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            existingAdmin.setHashedPassword(hashedPassword);
+            await userRepository.save(existingAdmin);
+            console.log('Admin password updated successfully');
             return;
         }
-        const adminUser = userRepository.create({
-            name: 'Administrator',
-            username: 'admin',
-            password: await bcrypt.hash('admin123', 10),
-            role: 'admin',
-            isActive: true
-        });
+        const adminUser = new entities_1.User();
+        adminUser.name = 'Administrator';
+        adminUser.username = 'admin';
+        adminUser.role = 'admin';
+        adminUser.isActive = true;
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        adminUser.setHashedPassword(hashedPassword);
         await userRepository.save(adminUser);
         console.log('Default admin user created successfully');
     }

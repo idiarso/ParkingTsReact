@@ -3,16 +3,19 @@ import jwt from 'jsonwebtoken';
 import { AppError } from './errorHandler';
 import { User } from '../entities';
 import { UserRole } from '../types/auth';
+import { tokenBlacklist } from '../utils/tokenBlacklist';
 
 interface JwtPayload {
-  id: string;
+  userId: string;
   role: string;
+  exp?: number;
 }
 
 declare global {
   namespace Express {
     interface Request {
       user?: User;
+      token?: string;
     }
   }
 }
@@ -29,14 +32,22 @@ export const authenticate = async (
       throw new AppError(401, 'Authentication required');
     }
 
+    // Check if token is blacklisted
+    if (tokenBlacklist.isBlacklisted(token)) {
+      throw new AppError(401, 'Token has been invalidated');
+    }
+
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'your-secret-key'
+      process.env.JWT_SECRET || 'default_secret'
     ) as JwtPayload;
+
+    // Store token in request for logout
+    req.token = token;
 
     // Add user info to request
     req.user = {
-      id: decoded.id,
+      id: decoded.userId,
       role: decoded.role
     } as User;
 

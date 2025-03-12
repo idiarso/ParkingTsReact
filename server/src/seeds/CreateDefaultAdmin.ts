@@ -1,4 +1,4 @@
-import { AppDataSource } from '../config/ormconfig';
+import { AppDataSource } from '../config/database';
 import { User } from '../entities';
 import * as bcrypt from 'bcryptjs';
 

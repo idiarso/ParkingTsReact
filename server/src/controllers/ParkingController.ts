@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
 import { ParkingSession } from '../entities/ParkingSession';
 import { ParkingRate } from '../entities/ParkingRate';
+import { Receipt } from '../entities/Receipt';
+import { AppDataSource } from '../config/database';
 import { logger } from '../utils/logger';
 import { ReceiptController } from './ReceiptController';
-import { Receipt } from '../entities/Receipt';
 
 export class ParkingController {
   private calculateParkingFee(
@@ -77,7 +77,7 @@ export class ParkingController {
       }
 
       // Validate vehicle type against available rates
-      const rateRepo = getRepository(ParkingRate);
+      const rateRepo = AppDataSource.getRepository(ParkingRate);
       const validRate = await rateRepo.findOne({
         where: {
           vehicleType,
@@ -93,7 +93,7 @@ export class ParkingController {
       }
 
       // Check if vehicle is already parked
-      const parkingRepo = getRepository(ParkingSession);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
       const existingSession = await parkingRepo.findOne({
         where: {
           plateNumber,
@@ -149,7 +149,7 @@ export class ParkingController {
         customerEmail
       } = req.body;
 
-      const parkingRepo = getRepository(ParkingSession);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
       const session = await parkingRepo.findOne({
         where: {
           plateNumber,
@@ -164,7 +164,7 @@ export class ParkingController {
         });
       }
 
-      const rateRepo = getRepository(ParkingRate);
+      const rateRepo = AppDataSource.getRepository(ParkingRate);
       const rate = await rateRepo.findOne({
         where: {
           vehicleType: session.vehicleType,
@@ -206,7 +206,7 @@ export class ParkingController {
       await parkingRepo.save(session);
 
       // Generate receipt
-      const receiptRepo = getRepository(Receipt);
+      const receiptRepo = AppDataSource.getRepository(Receipt);
       const receiptController = new ReceiptController();
       const receipt = await receiptRepo.create({
         receiptNumber: receiptController['generateReceiptNumber'](),
@@ -253,7 +253,7 @@ export class ParkingController {
     try {
       const { plateNumber } = req.params;
 
-      const parkingRepo = getRepository(ParkingSession);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
       const session = await parkingRepo.findOne({
         where: {
           plateNumber,
@@ -269,7 +269,7 @@ export class ParkingController {
       }
 
       const now = new Date();
-      const rateRepo = getRepository(ParkingRate);
+      const rateRepo = AppDataSource.getRepository(ParkingRate);
       const rate = await rateRepo.findOne({
         where: {
           vehicleType: session.vehicleType,
@@ -320,7 +320,7 @@ export class ParkingController {
   async getRecentSessions(req: Request, res: Response) {
     try {
       const { status, limit = 10 } = req.query;
-      const parkingRepo = getRepository(ParkingSession);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
 
       const where: any = {};
       if (status === 'active') {
@@ -352,7 +352,7 @@ export class ParkingController {
 
   async getStatistics(_req: Request, res: Response) {
     try {
-      const parkingRepo = getRepository(ParkingSession);
+      const parkingRepo = AppDataSource.getRepository(ParkingSession);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 

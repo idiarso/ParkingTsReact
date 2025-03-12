@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorize = exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const errorHandler_1 = require("./errorHandler");
+const tokenBlacklist_1 = require("../utils/tokenBlacklist");
 const authenticate = async (req, _res, next) => {
     var _a;
     try {
@@ -13,9 +14,13 @@ const authenticate = async (req, _res, next) => {
         if (!token) {
             throw new errorHandler_1.AppError(401, 'Authentication required');
         }
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        if (tokenBlacklist_1.tokenBlacklist.isBlacklisted(token)) {
+            throw new errorHandler_1.AppError(401, 'Token has been invalidated');
+        }
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'default_secret');
+        req.token = token;
         req.user = {
-            id: decoded.id,
+            id: decoded.userId,
             role: decoded.role
         };
         next();

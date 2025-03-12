@@ -15,14 +15,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const typeorm_1 = require("typeorm");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const logger_1 = require("../utils/logger");
 let User = class User {
+    constructor() {
+        this.tempPassword = null;
+    }
     async hashPassword() {
-        if (this.password) {
-            this.password = await bcryptjs_1.default.hash(this.password, 10);
+        if (this.password && this.password !== this.tempPassword) {
+            if (!this.password.startsWith('$2a$')) {
+                logger_1.logger.debug('Hashing password during save', {
+                    originalPassword: this.password.substring(0, 3) + '...',
+                    isHashed: this.password.startsWith('$2a$')
+                });
+                this.password = await bcryptjs_1.default.hash(this.password, 10);
+                logger_1.logger.debug('Password hashed', {
+                    hashedPassword: this.password.substring(0, 7) + '...'
+                });
+            }
+            this.tempPassword = this.password;
         }
     }
     async validatePassword(password) {
-        return bcryptjs_1.default.compare(password, this.password);
+        logger_1.logger.debug('Validating password', {
+            providedPassword: password.substring(0, 3) + '...',
+            storedHash: this.password.substring(0, 7) + '...'
+        });
+        const isValid = await bcryptjs_1.default.compare(password, this.password);
+        logger_1.logger.debug('Password validation result', { isValid });
+        return isValid;
+    }
+    setHashedPassword(hashedPassword) {
+        logger_1.logger.debug('Setting hashed password', {
+            hashedPassword: hashedPassword.substring(0, 7) + '...'
+        });
+        this.password = hashedPassword;
+        this.tempPassword = hashedPassword;
     }
 };
 exports.User = User;
@@ -68,6 +95,7 @@ __decorate([
 ], User.prototype, "updatedAt", void 0);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
+    (0, typeorm_1.BeforeUpdate)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

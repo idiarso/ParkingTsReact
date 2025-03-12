@@ -1,11 +1,10 @@
 import express from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes';
 import { setupDatabase } from './config/database';
-import { setupSocketHandlers } from './socket';
+import { initializeSocket } from './socket';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 
@@ -14,12 +13,6 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-    methods: ['GET', 'POST']
-  }
-});
 
 // Middleware
 app.use(cors());
@@ -45,7 +38,7 @@ app.get('/', (_req, res) => {
 app.use('/api', routes);
 
 // Setup socket handlers
-setupSocketHandlers(io);
+initializeSocket(httpServer);
 
 // Error handling
 app.use(errorHandler);
