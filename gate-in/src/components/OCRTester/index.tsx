@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import { detectLicensePlate } from '../../services/ocr';
-import WebcamCapture from '../WebcamCapture';
+import { WebcamCapture } from '../WebcamCapture';
 
 export const OCRTester: React.FC = () => {
   const [result, setResult] = useState<string | null>(null);
