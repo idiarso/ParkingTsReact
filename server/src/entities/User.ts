@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
 import bcrypt from 'bcryptjs';
 
 @Entity('users')
@@ -37,14 +37,28 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  private tempPassword: string | null = null;
+
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
-    if (this.password) {
-      this.password = await bcrypt.hash(this.password, 10);
+    // Only hash the password if it has been explicitly changed
+    if (this.password && this.password !== this.tempPassword) {
+      // Skip hashing if the password is already hashed (starts with $2a$)
+      if (!this.password.startsWith('$2a$')) {
+        this.password = await bcrypt.hash(this.password, 10);
+      }
+      this.tempPassword = this.password;
     }
   }
 
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
+  }
+
+  // Helper method to set an already hashed password
+  setHashedPassword(hashedPassword: string) {
+    this.password = hashedPassword;
+    this.tempPassword = hashedPassword;
   }
 } 

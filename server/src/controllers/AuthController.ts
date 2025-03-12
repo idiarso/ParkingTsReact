@@ -30,12 +30,18 @@ export class AuthController {
         return next(new AppError(401, 'Invalid credentials'));
       }
 
-      // Update last login
-      user.lastLogin = {
-        timestamp: new Date(),
-        ip: req.ip || 'unknown'
-      };
-      await userRepository.save(user);
+      // Update last login directly in the database to avoid triggering @BeforeUpdate
+      await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({
+          lastLogin: {
+            timestamp: new Date(),
+            ip: req.ip || 'unknown'
+          }
+        })
+        .where('id = :id', { id: user.id })
+        .execute();
 
       const secret: Secret = process.env.JWT_SECRET || 'default_secret';
       const options: SignOptions = {
