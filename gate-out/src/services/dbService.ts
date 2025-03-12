@@ -53,11 +53,9 @@ class DBService {
         const allEntries = await this.getAllEntriesFromIndexedDB();
         return allEntries.find(entry => entry.ticketId === ticketId) || null;
       }
-    } catch (error) {
-      console.error(`Failed to find entry with ticket ID ${ticketId}:`, error);
-      
-      // For demo purposes, return mock data if real data retrieval fails
-      return this.getMockEntryForDemo(ticketId);
+    } catch (err) {
+      console.error('Error finding entry by ticket ID:', err);
+      return null;
     }
   }
   
@@ -149,6 +147,51 @@ class DBService {
       entryTime,
       processed: true
     };
+  }
+
+  async findByLicensePlate(licensePlate: string): Promise<VehicleEntry[]> {
+    try {
+      if (window.electronAPI) {
+        const allEntries = await window.electronAPI.getAll(this.storeName);
+        return allEntries.filter(entry => entry.licensePlate === licensePlate);
+      } else {
+        const allEntries = await this.getAllEntriesFromIndexedDB();
+        return allEntries.filter(entry => entry.licensePlate === licensePlate);
+      }
+    } catch (err) {
+      console.error('Error finding entries by license plate:', err);
+      return [];
+    }
+  }
+
+  async getAllActiveEntries(): Promise<VehicleEntry[]> {
+    try {
+      if (window.electronAPI) {
+        const allEntries = await window.electronAPI.getAll(this.storeName);
+        return allEntries.filter(entry => !entry.exitTime);
+      } else {
+        const allEntries = await this.getAllEntriesFromIndexedDB();
+        return allEntries.filter(entry => !entry.exitTime);
+      }
+    } catch (err) {
+      console.error('Error getting active entries:', err);
+      return [];
+    }
+  }
+
+  async getCompletedEntries(): Promise<VehicleEntry[]> {
+    try {
+      if (window.electronAPI) {
+        const allEntries = await window.electronAPI.getAll(this.storeName);
+        return allEntries.filter(entry => entry.exitTime);
+      } else {
+        const allEntries = await this.getAllEntriesFromIndexedDB();
+        return allEntries.filter(entry => entry.exitTime);
+      }
+    } catch (err) {
+      console.error('Error getting completed entries:', err);
+      return [];
+    }
   }
 }
 

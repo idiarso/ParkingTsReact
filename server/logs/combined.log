@@ -928,3 +928,37 @@
 {"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:51:38.559Z"}
 {"database":"parking_system","host":"localhost","level":"info","message":"Attempting to connect to database with config:","port":"5432","timestamp":"2025-03-12T22:51:45.557Z","username":"postgres"}
 {"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T22:51:45.754Z"}
+{"level":"info","message":"Client disconnected: zCGM2qntwOChBzf0AAA9","timestamp":"2025-03-12T22:51:53.339Z"}
+{"level":"info","message":"Client connected: cQ-AjFcNldRebjsOAAA_","timestamp":"2025-03-12T22:51:54.287Z"}
+{"level":"info","message":"Client cQ-AjFcNldRebjsOAAA_ registered as: gate-in","timestamp":"2025-03-12T22:51:54.299Z"}
+{"level":"info","message":"Client disconnected: cQ-AjFcNldRebjsOAAA_","timestamp":"2025-03-12T22:51:55.206Z"}
+{"level":"info","message":"Client connected: Y4N0xdSZD3QbAXdwAABB","timestamp":"2025-03-12T22:51:58.297Z"}
+{"level":"info","message":"Client Y4N0xdSZD3QbAXdwAABB registered as: gate-in","timestamp":"2025-03-12T22:51:58.309Z"}
+{"level":"info","message":"Client disconnected: Y4N0xdSZD3QbAXdwAABB","timestamp":"2025-03-12T22:51:59.289Z"}
+{"level":"info","message":"Client connected: 0Y5kxLUgsgup7X8rAABD","timestamp":"2025-03-12T22:52:00.365Z"}
+{"level":"info","message":"Client 0Y5kxLUgsgup7X8rAABD registered as: gate-in","timestamp":"2025-03-12T22:52:00.377Z"}
+{"level":"info","message":"Client disconnected: 0Y5kxLUgsgup7X8rAABD","timestamp":"2025-03-12T22:52:01.140Z"}
+{"level":"info","message":"Client connected: AX2UzzXyNy20XaD6AABF","timestamp":"2025-03-12T22:52:01.779Z"}
+{"level":"info","message":"Client AX2UzzXyNy20XaD6AABF registered as: gate-in","timestamp":"2025-03-12T22:52:01.789Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:52:38.567Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:53:38.568Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:54:38.569Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:55:38.581Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:56:38.597Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:57:38.614Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:58:38.615Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T22:59:38.616Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:00:38.622Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:01:38.632Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:02:38.640Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:03:38.654Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:04:38.668Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:05:38.669Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:06:38.678Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:07:38.686Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:08:38.696Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:09:38.704Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:10:38.713Z"}
+{"level":"info","message":"Connected clients: {\"total\":2,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-12T23:11:38.723Z"}
+{"level":"info","message":"Client disconnected: AX2UzzXyNy20XaD6AABF","timestamp":"2025-03-12T23:12:30.700Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":1,\"gateOut\":0}","timestamp":"2025-03-12T23:12:38.730Z"}

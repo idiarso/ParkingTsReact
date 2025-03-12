@@ -1,66 +1,173 @@
-import React from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
+import React, { useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Divider,
+  ListItemIcon,
+  ListItemText,
   Box,
-  Switch,
-  FormControlLabel,
-  Tabs,
-  Tab
+  Badge,
+  Avatar
 } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  DirectionsCar, 
-  AutoFixHigh, 
-  ConfirmationNumber, 
-  Dashboard 
+import {
+  Menu as MenuIcon,
+  DirectionsCar,
+  PhotoCamera,
+  Settings,
+  ExitToApp,
+  Person,
+  Help,
+  Receipt,
+  DeveloperBoard
 } from '@mui/icons-material';
 
-const Navbar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const path = location.pathname;
-
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    navigate(newValue);
+const Navbar: React.FC = () => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userAnchorEl, setUserAnchorEl] = useState<null | HTMLElement>(null);
+  
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleUserMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setUserAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleUserMenuClose = () => {
+    setUserAnchorEl(null);
+  };
+  
+  const handleNavigate = (route: string) => {
+    // Navigation logic here
+    console.log(`Navigating to ${route}`);
+    handleClose();
+  };
+  
+  const handleLogout = () => {
+    console.log('Logging out');
+    handleUserMenuClose();
+    // Implement logout logic
   };
 
   return (
-    <AppBar position="static" color="primary">
+    <AppBar position="static">
       <Toolbar>
-        <DirectionsCar sx={{ mr: 1 }} />
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={handleMenuClick}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Gate-In System
         </Typography>
         
-        <Box sx={{ width: '100%', maxWidth: 500, mx: 'auto' }}>
-          <Tabs 
-            value={path} 
-            onChange={handleChange} 
-            indicatorColor="secondary"
-            textColor="inherit"
-            variant="fullWidth"
-            aria-label="gate-in navigation tabs"
-          >
-            <Tab 
-              icon={<Dashboard />} 
-              label="Dashboard" 
-              value="/" 
-            />
-            <Tab 
-              icon={<AutoFixHigh />} 
-              label="Automated" 
-              value="/automated" 
-            />
-            <Tab 
-              icon={<ConfirmationNumber />} 
-              label="Ticket" 
-              value="/ticket" 
-            />
-          </Tabs>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 2 }}>
+            Gate: Main Entrance
+          </Typography>
+          <IconButton color="inherit" onClick={handleUserMenuClick}>
+            <Badge color="secondary" variant="dot">
+              <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                <Person />
+              </Avatar>
+            </Badge>
+          </IconButton>
         </Box>
+        
+        {/* Main Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={() => handleNavigate('/dashboard')}>
+            <ListItemIcon>
+              <DirectionsCar fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Dashboard</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={() => handleNavigate('/entry')}>
+            <ListItemIcon>
+              <DirectionsCar fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Process Vehicle Entry</ListItemText>
+          </MenuItem>
+          
+          <Divider />
+          
+          <MenuItem onClick={() => handleNavigate('/camera-settings')}>
+            <ListItemIcon>
+              <PhotoCamera fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Camera Settings</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={() => handleNavigate('/ocr-test')}>
+            <ListItemIcon>
+              <DeveloperBoard fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>OCR Testing</ListItemText>
+          </MenuItem>
+          
+          <Divider />
+          
+          <MenuItem onClick={() => handleNavigate('/recent-entries')}>
+            <ListItemIcon>
+              <Receipt fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Recent Entries</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={() => handleNavigate('/help')}>
+            <ListItemIcon>
+              <Help fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Help</ListItemText>
+          </MenuItem>
+        </Menu>
+        
+        {/* User Menu */}
+        <Menu
+          anchorEl={userAnchorEl}
+          open={Boolean(userAnchorEl)}
+          onClose={handleUserMenuClose}
+        >
+          <MenuItem onClick={handleUserMenuClose}>
+            <ListItemIcon>
+              <Person fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Profile</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={handleUserMenuClose}>
+            <ListItemIcon>
+              <Settings fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Settings</ListItemText>
+          </MenuItem>
+          
+          <Divider />
+          
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <ExitToApp fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Logout</ListItemText>
+          </MenuItem>
+        </Menu>
       </Toolbar>
     </AppBar>
   );

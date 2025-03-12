@@ -18,6 +18,9 @@ export interface VehicleEntry {
   processed: boolean;
   exitTime?: number;
   fee?: number;
+  paymentMethod?: 'Cash' | 'Card' | 'Digital';
+  lostTicket?: boolean;
+  overnight?: boolean;
 }
 
 // Different rates for different vehicle types
