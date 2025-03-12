@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, MouseEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -15,10 +15,14 @@ import {
   ListItemIcon,
   ListItemText,
   Menu,
-  MenuItem
+  MenuItem,
+  Tooltip,
 } from '@mui/material';
+import type { DrawerProps, MenuProps, MenuItemProps, IconButtonProps } from '@mui/material';
+import { Theme, useTheme, styled } from '@mui/material/styles';
+import { SxProps } from '@mui/system';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -32,6 +36,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { logout } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
+import { SidebarContent } from './SidebarContent';
 
 const drawerWidth = 240;
 
@@ -39,12 +44,55 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+interface StyledMenuProps extends MenuProps {
+  anchorOrigin?: {
+    vertical: 'top' | 'bottom';
+    horizontal: 'left' | 'right';
+  };
+  transformOrigin?: {
+    vertical: 'top' | 'bottom';
+    horizontal: 'left' | 'right';
+  };
+}
+
+const StyledMenu = styled((props: StyledMenuProps) => (
+  <Menu {...props} />
+))(({ theme }) => ({
+  '& .MuiPaper-root': {
+    overflow: 'visible',
+    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+    marginTop: theme.spacing(1.5),
+    '& .MuiAvatar-root': {
+      width: 32,
+      height: 32,
+      marginLeft: -0.5,
+      marginRight: 1,
+    },
+  },
+}));
+
+interface StyledMenuItemProps extends MenuItemProps {
+  onClick?: () => void;
+}
+
+const StyledMenuItem = styled((props: StyledMenuItemProps) => (
+  <MenuItem {...props} />
+))(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: '#f5f5f5',
+  },
+  '& .MuiListItemIcon-root': {
+    minWidth: 36,
+  },
+}));
+
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Get user from Redux store
   const user = useSelector((state: RootState) => state.auth.user);
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -55,7 +103,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleAccountMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleAccountMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setAccountMenuAnchor(event.currentTarget);
   };
 
@@ -64,13 +112,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const handleChangePassword = () => {
-    setAccountMenuAnchor(null);
+    handleAccountMenuClose();
     setChangePasswordOpen(true);
   };
 
   const handleLogout = () => {
+    handleAccountMenuClose();
     dispatch(logout());
     navigate('/login');
+  };
+
+  const drawerSx: SxProps<Theme> = {
+    width: { sm: drawerWidth },
+    flexShrink: { sm: 0 },
+    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
   };
 
   const menuItems = [
@@ -84,33 +139,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   if (user?.role === 'admin' || user?.role === 'superadmin') {
     menuItems.push({ text: 'User Management', icon: <PeopleIcon />, path: '/users' });
   }
-
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Parking Admin
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  );
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -132,22 +160,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
+            Parking Management System
           </Typography>
           
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Tooltip title="Account settings">
-                <IconButton
-                  onClick={handleAccountMenuOpen}
-                  color="inherit"
-                  size="large"
-                  edge="end"
-                >
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
-                    {user.name.charAt(0)}
-                  </Avatar>
-                </IconButton>
+                <span>
+                  <IconButton
+                    onClick={() => handleAccountMenuOpen}
+                    color="inherit"
+                    size="large"
+                    edge="end"
+                  >
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                      {user.name.charAt(0)}
+                    </Avatar>
+                  </IconButton>
+                </span>
               </Tooltip>
               <Typography variant="body2" sx={{ ml: 1, display: { xs: 'none', md: 'block' } }}>
                 {user.name}
@@ -155,15 +185,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Box>
           )}
           
-          <Menu
+          <StyledMenu
             anchorEl={accountMenuAnchor}
             open={Boolean(accountMenuAnchor)}
             onClose={handleAccountMenuClose}
-            sx={{
-              mt: '45px'
-            }}
             anchorOrigin={{
-              vertical: 'top',
+              vertical: 'bottom',
               horizontal: 'right',
             }}
             transformOrigin={{
@@ -171,47 +198,47 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               horizontal: 'right',
             }}
           >
-            <MenuItem onClick={() => {
+            <StyledMenuItem onClick={() => {
               handleAccountMenuClose();
               navigate('/profile');
             }}>
               <ListItemIcon>
                 <AccountCircleIcon fontSize="small" />
               </ListItemIcon>
-              <Typography variant="inherit">My Profile</Typography>
-            </MenuItem>
-            <MenuItem onClick={handleChangePassword}>
+              <Typography variant="body1">My Profile</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={handleChangePassword}>
               <ListItemIcon>
                 <AccountCircleIcon fontSize="small" />
               </ListItemIcon>
-              <Typography variant="inherit">Change Password</Typography>
-            </MenuItem>
+              <Typography variant="body1">Change Password</Typography>
+            </StyledMenuItem>
             <Divider />
-            <MenuItem onClick={handleLogout}>
+            <StyledMenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              <Typography variant="inherit">Logout</Typography>
-            </MenuItem>
-          </Menu>
+              <Typography variant="body1">Logout</Typography>
+            </StyledMenuItem>
+          </StyledMenu>
         </Toolbar>
       </AppBar>
       
-      <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+      <Box
+        sx={drawerSx}
+        aria-label="navigation drawer"
+      >
         {/* Mobile drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile
-          }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          {drawer}
+          <SidebarContent />
         </Drawer>
         
         {/* Desktop drawer */}
@@ -223,16 +250,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }}
           open
         >
-          {drawer}
+          <SidebarContent />
         </Drawer>
       </Box>
       
-      <Box sx={{
-        flexGrow: 1,
-        p: 3,
-        width: { sm: `calc(100% - ${drawerWidth}px)` },
-        overflow: 'auto',
-      }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: '64px',
+        }}
+      >
         <Toolbar /> {/* Spacer to push content below app bar */}
         {children}
       </Box>

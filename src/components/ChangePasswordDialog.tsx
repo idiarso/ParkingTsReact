@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   IconButton,
   Box,
-  Alert
+  Alert,
 } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import type { StandardTextFieldProps } from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 import Visibility from '@mui/icons-material/Visibility';
@@ -115,6 +116,47 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ open
     }
   };
 
+  const handleInputChange = (setter: (value: string) => void) => (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    setter(e.target.value);
+  };
+
+  const handleToggleVisibility = (
+    showState: boolean,
+    setShowState: (state: boolean) => void
+  ) => () => {
+    setShowState(!showState);
+  };
+
+  const textFieldProps = (
+    showPassword: boolean,
+    setShowPassword: (show: boolean) => void,
+    value: string,
+    setter: (value: string) => void,
+    label: string
+  ): Partial<StandardTextFieldProps> => ({
+    fullWidth: true,
+    label,
+    type: showPassword ? 'text' : 'password',
+    value,
+    onChange: handleInputChange(setter),
+    error: !!error && !value,
+    InputProps: {
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton
+            onClick={handleToggleVisibility(showPassword, setShowPassword)}
+            edge="end"
+            disabled={loading || success}
+          >
+            {showPassword ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    },
+  });
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Change Password</DialogTitle>
@@ -134,66 +176,33 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({ open
           )}
           
           <TextField
-            fullWidth
-            label="Current Password"
-            type={showCurrentPassword ? 'text' : 'password'}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            disabled={loading || success}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    edge="end"
-                  >
-                    {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+            {...textFieldProps(
+              showCurrentPassword,
+              setShowCurrentPassword,
+              currentPassword,
+              setCurrentPassword,
+              'Current Password'
+            )}
           />
           
           <TextField
-            fullWidth
-            label="New Password"
-            type={showNewPassword ? 'text' : 'password'}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            disabled={loading || success}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    edge="end"
-                  >
-                    {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+            {...textFieldProps(
+              showNewPassword,
+              setShowNewPassword,
+              newPassword,
+              setNewPassword,
+              'New Password'
+            )}
           />
           
           <TextField
-            fullWidth
-            label="Confirm New Password"
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={loading || success}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+            {...textFieldProps(
+              showConfirmPassword,
+              setShowConfirmPassword,
+              confirmPassword,
+              setConfirmPassword,
+              'Confirm New Password'
+            )}
           />
         </Box>
       </DialogContent>

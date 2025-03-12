@@ -1,91 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  CircularProgress,
-  Alert,
-  InputAdornment,
-  IconButton,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { login, clearError } from '../store/slices/authSlice';
-import { RootState, AppDispatch } from '../store';
-import parkingLogo from '../assets/parking-logo.png';
+import React, { useState, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import MuiBox from '@mui/material/Box';
+import MuiButton from '@mui/material/Button';
+import MuiTextField from '@mui/material/TextField';
+import MuiTypography from '@mui/material/Typography';
+import MuiContainer from '@mui/material/Container';
+import MuiPaper from '@mui/material/Paper';
+import MuiAvatar from '@mui/material/Avatar';
+import LocalParkingIcon from '@mui/icons-material/LocalParking';
+import { useAuth } from '../hooks/useAuth';
 
-const Login: React.FC = () => {
+const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [formErrors, setFormErrors] = useState({
-    username: '',
-    password: '',
-  });
+  const [error, setError] = useState('');
 
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  const { isAuthenticated, loading, error } = useSelector((state: RootState) => state.auth);
-  
-  // Get the intended destination from location state
-  const from = (location.state as any)?.from?.pathname || '/';
-  
-  useEffect(() => {
-    // If already authenticated, redirect to intended destination
-    if (isAuthenticated) {
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, from]);
-  
-  // Clear error when component unmounts
-  useEffect(() => {
-    return () => {
-      dispatch(clearError());
-    };
-  }, [dispatch]);
-  
-  const validateForm = (): boolean => {
-    let valid = true;
-    const errors = {
-      username: '',
-      password: '',
-    };
-    
-    if (!username.trim()) {
-      errors.username = 'Username is required';
-      valid = false;
-    }
-    
-    if (!password) {
-      errors.password = 'Password is required';
-      valid = false;
-    }
-    
-    setFormErrors(errors);
-    return valid;
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     
-    if (validateForm()) {
-      dispatch(login({ username, password }));
+    try {
+      await login({ email: username, password });
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Invalid username or password');
     }
   };
-  
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-  
+
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
+    <MuiContainer maxWidth="xs">
+      <MuiBox
         sx={{
           marginTop: 8,
           display: 'flex',
@@ -93,108 +39,66 @@ const Login: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        <Box 
-          component="img"
-          src={parkingLogo}
-          alt="Parking Management System Logo"
-          sx={{ 
-            height: 80,
-            mb: 2
-          }}
-        />
-        
-        <Typography component="h1" variant="h5">
-          Parking Management System
-        </Typography>
-        
-        <Paper
+        <MuiPaper
           elevation={3}
           sx={{
             padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             width: '100%',
-            mt: 3,
-            borderRadius: 2,
           }}
         >
-          <Typography component="h2" variant="h6" align="center" gutterBottom>
-            Admin Login
-          </Typography>
-          
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ mb: 2 }}
-              onClose={() => dispatch(clearError())}
-            >
-              {error}
-            </Alert>
-          )}
-          
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
+          <MuiAvatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+            <LocalParkingIcon sx={{ fontSize: 40 }} />
+          </MuiAvatar>
+          <MuiTypography component="h1" variant="h5">
+            Parking System
+          </MuiTypography>
+          <MuiBox
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 1, width: '100%' }}
+          >
+            <MuiTextField
               fullWidth
               id="username"
-              label="Username"
+              label="Email"
               name="username"
-              autoComplete="username"
+              autoComplete="email"
               autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              error={!!formErrors.username}
-              helperText={formErrors.username}
-              disabled={loading}
+              sx={{ mb: 2 }}
             />
-            
-            <TextField
-              margin="normal"
-              required
+            <MuiTextField
               fullWidth
               name="password"
               label="Password"
-              type={showPassword ? 'text' : 'password'}
+              type="password"
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={!!formErrors.password}
-              helperText={formErrors.password}
-              disabled={loading}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleTogglePasswordVisibility}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
+              sx={{ mb: 2 }}
             />
-            
-            <Button
+            {error && (
+              <MuiTypography color="error" sx={{ mb: 2 }}>
+                {error}
+              </MuiTypography>
+            )}
+            <MuiButton
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-              disabled={loading}
+              sx={{ mt: 1 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Sign In'}
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-      
-      <Box mt={5}>
-        <Typography variant="body2" color="text.secondary" align="center">
-          &copy; {new Date().getFullYear()} Parking Management System
-        </Typography>
-      </Box>
-    </Container>
+              Sign In
+            </MuiButton>
+          </MuiBox>
+        </MuiPaper>
+      </MuiBox>
+    </MuiContainer>
   );
 };
 

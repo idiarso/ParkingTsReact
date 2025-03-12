@@ -22,7 +22,7 @@ type Action = 'create' | 'read' | 'update' | 'delete';
 
 interface MenuItem {
   text: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   path: string;
   requiredPermission?: {
     resource: string;

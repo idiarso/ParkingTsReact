@@ -1,17 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { Box, Typography, Button, Paper } from '@mui/material';
-import { logout } from '../store/slices/authSlice';
-import { AppDispatch } from '../store';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import BlockIcon from '@mui/icons-material/Block';
 
 const Forbidden: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  
-  const handleLogout = () => {
-    dispatch(logout());
-  };
-  
   return (
     <Box
       sx={{
@@ -23,49 +17,49 @@ const Forbidden: React.FC = () => {
         padding: 3,
       }}
     >
-      <Paper
-        elevation={3}
+      <BlockIcon
         sx={{
-          padding: 4,
-          maxWidth: 500,
-          width: '100%',
+          fontSize: 64,
+          color: 'error.main',
+          mb: 2,
+        }}
+      />
+      
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        sx={{
+          fontWeight: 'bold',
           textAlign: 'center',
-          borderRadius: 2,
         }}
       >
-        <Typography variant="h1" color="error" sx={{ fontSize: 80, fontWeight: 'bold' }}>
-          403
-        </Typography>
-        
-        <Typography variant="h5" color="text.primary" gutterBottom>
-          Access Forbidden
-        </Typography>
-        
-        <Typography variant="body1" color="text.secondary" paragraph>
-          You don't have permission to access this page. Please contact your administrator if you believe this is an error.
-        </Typography>
-        
-        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
-            component={Link}
-            to="/"
-            variant="contained"
-            color="primary"
-            fullWidth
-          >
-            Go to Dashboard
-          </Button>
-          
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleLogout}
-            fullWidth
-          >
-            Logout
-          </Button>
-        </Box>
-      </Paper>
+        403 - Access Forbidden
+      </Typography>
+      
+      <Typography
+        variant="body1"
+        sx={{
+          color: 'text.secondary',
+          textAlign: 'center',
+          maxWidth: 600,
+          mb: 3,
+        }}
+      >
+        You don't have permission to access this page. Please contact your administrator if you believe this is an error.
+      </Typography>
+      
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Button
+          component={Link}
+          to="/"
+          variant="contained"
+          color="primary"
+          sx={{ minWidth: 200 }}
+        >
+          Go to Dashboard
+        </Button>
+      </Box>
     </Box>
   );
 };

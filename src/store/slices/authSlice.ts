@@ -22,6 +22,11 @@ interface AuthState {
   error: string | null;
 }
 
+interface LoginResponse {
+  token: string;
+  user: User;
+}
+
 // Initial state
 const initialState: AuthState = {
   isAuthenticated: false,
@@ -32,11 +37,15 @@ const initialState: AuthState = {
 };
 
 // Async actions
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<
+  LoginResponse,
+  { username: string; password: string },
+  { rejectValue: string }
+>(
   'auth/login',
-  async (credentials: { username: string; password: string }, { rejectWithValue }) => {
+  async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, credentials);
       const { token, user } = response.data;
       
       // Save token to localStorage
@@ -52,18 +61,22 @@ export const login = createAsyncThunk(
   }
 );
 
-export const fetchCurrentUser = createAsyncThunk(
+export const fetchCurrentUser = createAsyncThunk<
+  User,
+  void,
+  { state: { auth: AuthState }; rejectValue: string }
+>(
   'auth/fetchCurrentUser',
   async (_, { getState, rejectWithValue }) => {
     try {
-      const { auth } = getState() as { auth: AuthState };
+      const { auth } = getState();
       
       if (!auth.token) {
         return rejectWithValue('No authentication token found');
       }
       
       axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
-      const response = await axios.get(`${API_BASE_URL}/auth/me`);
+      const response = await axios.get<User>(`${API_BASE_URL}/auth/me`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
@@ -71,40 +84,44 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-export const changePassword = createAsyncThunk(
+export const changePassword = createAsyncThunk<
+  void,
+  { currentPassword: string; newPassword: string },
+  { state: { auth: AuthState }; rejectValue: string }
+>(
   'auth/changePassword',
-  async (
-    passwordData: { currentPassword: string; newPassword: string },
-    { getState, rejectWithValue }
-  ) => {
+  async (passwordData, { getState, rejectWithValue }) => {
     try {
-      const { auth } = getState() as { auth: AuthState };
+      const { auth } = getState();
       
       if (!auth.token) {
         return rejectWithValue('Not authenticated');
       }
       
       axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
-      const response = await axios.post(`${API_BASE_URL}/auth/change-password`, passwordData);
-      return response.data;
+      await axios.post(`${API_BASE_URL}/auth/change-password`, passwordData);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to change password');
     }
   }
 );
 
-export const updateUserProfile = createAsyncThunk(
+export const updateUserProfile = createAsyncThunk<
+  User,
+  { name: string },
+  { state: { auth: AuthState }; rejectValue: string }
+>(
   'auth/updateUserProfile',
-  async (profileData: { name: string }, { getState, rejectWithValue }) => {
+  async (profileData, { getState, rejectWithValue }) => {
     try {
-      const { auth } = getState() as { auth: AuthState };
+      const { auth } = getState();
       
       if (!auth.token || !auth.user) {
         return rejectWithValue('Not authenticated');
       }
       
       axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
-      const response = await axios.put(`${API_BASE_URL}/auth/profile`, profileData);
+      const response = await axios.put<User>(`${API_BASE_URL}/auth/profile`, profileData);
       
       return response.data;
     } catch (error: any) {
@@ -142,7 +159,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(login.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+    builder.addCase(login.fulfilled, (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
       state.token = action.payload.token;
@@ -150,7 +167,7 @@ const authSlice = createSlice({
     });
     builder.addCase(login.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload as string;
+      state.error = action.payload || 'Failed to login';
     });
     
     // Fetch current user
@@ -158,14 +175,14 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(fetchCurrentUser.fulfilled, (state, action: PayloadAction<User>) => {
+    builder.addCase(fetchCurrentUser.fulfilled, (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload;
     });
     builder.addCase(fetchCurrentUser.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload as string;
+      state.error = action.payload || 'Failed to fetch user';
       
       // If token is invalid, logout
       if (action.payload === 'Invalid or expired token') {
@@ -188,7 +205,7 @@ const authSlice = createSlice({
     });
     builder.addCase(changePassword.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload as string;
+      state.error = action.payload || 'Failed to change password';
     });
 
     // Update user profile
@@ -196,14 +213,14 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<User>) => {
+    builder.addCase(updateUserProfile.fulfilled, (state, action) => {
       state.loading = false;
       state.user = action.payload;
       localStorage.setItem('user', JSON.stringify(action.payload));
     });
     builder.addCase(updateUserProfile.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload as string;
+      state.error = action.payload || 'Failed to update profile';
     });
   }
 });
