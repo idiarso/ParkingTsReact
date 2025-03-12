@@ -1,27 +1,27 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authenticate } from '../middleware/auth';
 import { checkRole } from '../middleware/checkRoleMiddleware';
 import { UserRole } from '../types/auth';
 
 const router = Router();
 
 // Apply auth middleware to all user routes
-router.use(authMiddleware);
+router.use(authenticate);
 
-// Get all users - Only admin and superadmin can access
-router.get('/', checkRole([UserRole.ADMIN, UserRole.SUPERADMIN]), UserController.getAllUsers);
+// Get all users - Only admin can access
+router.get('/', checkRole([UserRole.ADMIN]), UserController.getAllUsers);
 
-// Get user by ID - Only admin and superadmin can access
-router.get('/:id', checkRole([UserRole.ADMIN, UserRole.SUPERADMIN]), UserController.getUserById);
+// Get user by ID - Only admin can access
+router.get('/:id', checkRole([UserRole.ADMIN]), UserController.getUserById);
 
-// Update user - Only admin and superadmin can access
-router.put('/:id', checkRole([UserRole.ADMIN, UserRole.SUPERADMIN]), UserController.updateUser);
+// Update user - Only admin can access
+router.put('/:id', checkRole([UserRole.ADMIN]), UserController.updateUser);
 
-// Update user status - Only admin and superadmin can access
-router.patch('/:id/status', checkRole([UserRole.ADMIN, UserRole.SUPERADMIN]), UserController.updateUserStatus);
+// Update user status - Only admin can access
+router.patch('/:id/status', checkRole([UserRole.ADMIN]), UserController.updateUserStatus);
 
-// Delete user - Only superadmin can access
-router.delete('/:id', checkRole([UserRole.SUPERADMIN]), UserController.deleteUser);
+// Delete user - Only admin can access
+router.delete('/:id', checkRole([UserRole.ADMIN]), UserController.deleteUser);
 
 export default router; 

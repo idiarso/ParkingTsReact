@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/AuthController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
 // Public routes
 router.post('/login', AuthController.login);
-router.post('/register', authMiddleware, AuthController.register);
+router.post('/register', authenticate, AuthController.register);
 
 // Protected routes - require authentication
-router.get('/me', authMiddleware, AuthController.getCurrentUser);
-router.post('/change-password', authMiddleware, AuthController.changePassword);
-router.put('/profile', authMiddleware, AuthController.updateProfile);
+router.get('/me', authenticate, AuthController.me);
+router.post('/change-password', authenticate, AuthController.changePassword);
+router.put('/profile', authenticate, AuthController.updateProfile);
 
 export default router; 

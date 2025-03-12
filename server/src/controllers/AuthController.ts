@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { getRepository } from 'typeorm';
+import jwt, { SignOptions, Secret } from 'jsonwebtoken';
 import { User } from '../entities/User';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || '24h';
+import { AppDataSource } from '../config/database';
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -17,7 +14,7 @@ export class AuthController {
         return next(new AppError(400, 'Username and password are required'));
       }
 
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({ where: { username } });
 
       if (!user) {
@@ -36,15 +33,20 @@ export class AuthController {
       // Update last login
       user.lastLogin = {
         timestamp: new Date(),
-        ip: req.ip
+        ip: req.ip || 'unknown'
       };
       await userRepository.save(user);
 
+      const secret: Secret = process.env.JWT_SECRET || 'default_secret';
+      const options: SignOptions = {
+        expiresIn: '24h'
+      };
+
       // Generate token
       const token = jwt.sign(
-        { id: user.id, role: user.role },
-        JWT_SECRET,
-        { expiresIn: TOKEN_EXPIRY }
+        { userId: user.id },
+        secret,
+        options
       );
 
       return res.json({
@@ -70,7 +72,7 @@ export class AuthController {
         return next(new AppError(400, 'Name, username and password are required'));
       }
 
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
 
       // Check if username is already taken
       const existingUser = await userRepository.findOne({ where: { username } });
@@ -109,7 +111,7 @@ export class AuthController {
         return next(new AppError(401, 'Not authenticated'));
       }
 
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({ where: { id: req.user.id } });
 
       if (!user) {
@@ -141,7 +143,7 @@ export class AuthController {
         return next(new AppError(400, 'Current password and new password are required'));
       }
 
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({ where: { id: req.user.id } });
 
       if (!user) {
@@ -178,7 +180,7 @@ export class AuthController {
         return next(new AppError(400, 'Name is required'));
       }
 
-      const userRepository = getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({ where: { id: userId } });
       
       if (!user) {

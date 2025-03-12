@@ -1,69 +1,35 @@
-import React, { useEffect } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import socketService from './services/socketService';
-import ExitGate from './components/ExitGate';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { createTheme } from '@mui/material/styles';
+import GateOutDashboard from './components/Dashboard';
 
+// Create theme instance
 const theme = createTheme({
   palette: {
-    mode: 'light',
     primary: {
-      main: '#1976d2',
+      main: '#d32f2f', // Red color for exit gate
     },
     secondary: {
-      main: '#f50057',
+      main: '#dc004e',
+    },
+    success: {
+      main: '#2e7d32',
     },
   },
 });
 
-function App() {
-  // Initialize socket connection when the app loads
-  useEffect(() => {
-    // Connect to the socket server
-    socketService.connect();
-
-    // Cleanup on component unmount
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
-
+const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        minHeight: '100vh',
-        bgcolor: 'background.default'
-      }}>
-        <Box component="header" sx={{ 
-          p: 2, 
-          bgcolor: 'primary.main', 
-          color: 'primary.contrastText',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-          <Typography variant="h4" component="h1">
-            Parking System - Exit Gate
-          </Typography>
-        </Box>
-        
-        <Box sx={{ 
-          flexGrow: 1, 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          p: 3
-        }}>
-          <ExitGate />
-        </Box>
-      </Box>
+      <Router>
+        <Routes>
+          <Route path="/" element={<GateOutDashboard />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
-}
+};
 
 export default App; 

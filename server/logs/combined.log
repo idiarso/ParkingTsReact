@@ -5,3 +5,169 @@
 {"level":"error","message":"Error connecting to database: Invalid or unexpected token","stack":"SyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:344:16)\n    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:376:18)\n    at loadESMFromCJS (node:internal/modules/cjs/loader:1565:24)\n    at Module._compile (node:internal/modules/cjs/loader:1716:5)\n    at Object.loadTS [as .ts] (node:internal/modules/cjs/loader:1826:10)\n    at Module.load (node:internal/modules/cjs/loader:1469:32)\n    at Function._load (node:internal/modules/cjs/loader:1286:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Module.require (node:internal/modules/cjs/loader:1491:12)","timestamp":"2025-03-10T23:09:59.992Z"}
 {"level":"info","message":"Database connection established","timestamp":"2025-03-10T23:12:54.151Z"}
 {"level":"info","message":"Server running on port 5000","timestamp":"2025-03-10T23:12:54.159Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T05:12:24.881Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T05:12:24.886Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T05:13:13.200Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T05:13:13.205Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:14:12.975Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T05:15:29.993Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T05:15:29.998Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:16:29.817Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T05:17:10.706Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T05:17:10.713Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:18:10.488Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:19:10.502Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:20:10.505Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:21:10.507Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:22:10.522Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:23:10.534Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:24:10.555Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:25:10.566Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:26:10.566Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:27:10.567Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:28:10.588Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:29:10.616Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:30:10.624Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:31:10.673Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:32:10.702Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:33:10.706Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:34:10.713Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:35:10.744Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:36:10.754Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:37:10.769Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:38:10.778Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:39:10.784Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:40:10.792Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:41:10.797Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:42:10.799Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:43:10.802Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:44:10.805Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:45:10.809Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:46:10.808Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:47:10.813Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:48:10.815Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:49:10.818Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:50:10.820Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:51:10.822Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:52:10.831Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:53:10.838Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:54:10.861Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:55:10.883Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:56:10.890Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:57:10.897Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:58:10.906Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T05:59:10.909Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:00:10.916Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:01:10.924Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:02:10.929Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:03:10.936Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:04:10.942Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:05:10.950Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:06:10.955Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:07:10.969Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:08:10.975Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:09:10.980Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:10:10.987Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:11:10.995Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:12:11.001Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:13:11.006Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:14:11.012Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:15:11.021Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:16:11.027Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:17:11.034Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:18:11.037Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:19:11.042Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:20:11.048Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:21:11.053Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:22:11.065Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:23:11.066Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:24:11.068Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:25:11.072Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:26:11.073Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:27:11.075Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:28:11.078Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:29:11.080Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:30:11.084Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:31:11.087Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:32:11.089Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:33:11.090Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:34:11.091Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:35:11.093Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:36:11.096Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:37:11.099Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:38:11.101Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:39:11.105Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:40:11.106Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:41:11.108Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:42:11.112Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:43:11.116Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:44:11.118Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:45:11.121Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:46:11.138Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:47:11.141Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:48:11.146Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:49:11.149Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:50:11.151Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:51:11.152Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:52:11.160Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:53:11.164Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:54:11.166Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:55:11.168Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:56:11.169Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:57:11.174Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:58:11.187Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T06:59:11.191Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:00:11.205Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:13:08.464Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T07:13:08.471Z"}
+{"level":"error","message":"[400] Username and password are required","timestamp":"2025-03-12T07:14:00.277Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:14:07.920Z"}
+{"level":"error","message":"[400] Username and password are required","timestamp":"2025-03-12T07:14:25.023Z"}
+{"body":"{\\","expose":true,"level":"error","message":"Unexpected error: Unexpected token \\ in JSON at position 1","stack":"SyntaxError: Unexpected token \\ in JSON at position 1\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\types\\json.js:92:19)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)\n    at invokeCallback (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:517:28)\n    at endReadableNT (node:internal/streams/readable:1368:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","status":400,"statusCode":400,"timestamp":"2025-03-12T07:14:35.901Z","type":"entity.parse.failed"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:15:07.931Z"}
+{"body":"{\\","expose":true,"level":"error","message":"Unexpected error: Unexpected token \\ in JSON at position 1","stack":"SyntaxError: Unexpected token \\ in JSON at position 1\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\types\\json.js:92:19)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)\n    at invokeCallback (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:517:28)\n    at endReadableNT (node:internal/streams/readable:1368:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","status":400,"statusCode":400,"timestamp":"2025-03-12T07:15:42.807Z","type":"entity.parse.failed"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:15:59.695Z"}
+{"body":"{\\","expose":true,"level":"error","message":"Unexpected error: Unexpected token \\ in JSON at position 1","stack":"SyntaxError: Unexpected token \\ in JSON at position 1\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\types\\json.js:92:19)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\body-parser\\lib\\read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)\n    at invokeCallback (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:517:28)\n    at endReadableNT (node:internal/streams/readable:1368:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)","status":400,"statusCode":400,"timestamp":"2025-03-12T07:16:05.589Z","type":"entity.parse.failed"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:16:07.947Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:17:07.957Z"}
+{"level":"error","message":"Login error: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at login (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\dist\\controllers\\AuthController.js:19:64)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:280:10)","timestamp":"2025-03-12T07:17:09.011Z"}
+{"level":"error","message":"[500] Failed to login","timestamp":"2025-03-12T07:17:09.015Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:18:07.972Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:19:07.985Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:20:07.990Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:20:27.637Z"}
+{"level":"error","message":"Login error: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at login (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\dist\\controllers\\AuthController.js:19:64)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:280:10)","timestamp":"2025-03-12T07:20:33.127Z"}
+{"level":"error","message":"[500] Failed to login","timestamp":"2025-03-12T07:20:33.131Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:21:07.991Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:21:53.368Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T07:21:53.375Z"}
+{"level":"error","message":"Login error: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at login (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\dist\\controllers\\AuthController.js:19:64)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:280:10)","timestamp":"2025-03-12T07:22:10.613Z"}
+{"level":"error","message":"[500] Failed to login","timestamp":"2025-03-12T07:22:10.619Z"}
+{"level":"error","message":"Login error: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at login (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\dist\\controllers\\AuthController.js:19:64)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:280:10)","timestamp":"2025-03-12T07:22:50.280Z"}
+{"level":"error","message":"[500] Failed to login","timestamp":"2025-03-12T07:22:50.284Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:22:53.112Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:23:53.121Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:24:53.127Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:25:53.145Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:26:53.146Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:27:18.995Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T07:27:19.010Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:28:18.727Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:29:18.744Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:29:19.294Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:30:18.753Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:31:18.753Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:32:18.762Z"}
+{"level":"error","message":"Login error: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at login (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\dist\\controllers\\AuthController.js:19:64)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (C:\\Users\\SIJA NEW 2022\\Documents\\AAA\\ParkingTsReact\\server\\node_modules\\express\\lib\\router\\index.js:280:10)","timestamp":"2025-03-12T07:32:51.476Z"}
+{"level":"error","message":"[500] Failed to login","timestamp":"2025-03-12T07:32:51.480Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:33:18.773Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:34:18.786Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:35:09.316Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T07:35:09.323Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:36:08.911Z"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-12T07:36:45.866Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-12T07:36:45.875Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:37:45.643Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:38:45.649Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:39:45.666Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-12T07:40:45.680Z"}

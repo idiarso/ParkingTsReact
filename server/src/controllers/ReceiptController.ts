@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { getRepository, Between, FindOperator } from 'typeorm';
+import { getRepository, Between } from 'typeorm';
 import { Receipt } from '../entities/Receipt';
 import { ParkingSession } from '../entities/ParkingSession';
 import { ParkingRate } from '../entities/ParkingRate';
 import { logger } from '../utils/logger';
 import { ReceiptGenerator } from '../utils/receiptGenerator';
 import { ReceiptFormat, BatchDownloadOptions } from '../types/receipt';
-import * as archiver from 'archiver';
+import archiver from 'archiver';
 
 export class ReceiptController {
   private generateReceiptNumber(): string {
@@ -25,7 +25,7 @@ export class ReceiptController {
   async generateReceipt(req: Request, res: Response) {
     try {
       const { parkingSessionId } = req.params;
-      const { customerEmail, format } = req.body as { customerEmail?: string; format?: ReceiptFormat };
+      const { customerEmail } = req.body as { customerEmail?: string; format?: ReceiptFormat };
 
       const parkingRepo = getRepository(ParkingSession);
       const rateRepo = getRepository(ParkingRate);
@@ -175,6 +175,7 @@ export class ReceiptController {
       await archive.finalize();
 
       logger.info(`Batch download completed: ${receipts.length} receipts`);
+      return res.status(200).send('Batch download completed');
     } catch (error) {
       logger.error('Error generating batch download:', error);
       return res.status(500).json({
@@ -187,7 +188,6 @@ export class ReceiptController {
   async getReceipt(req: Request, res: Response) {
     try {
       const { receiptNumber } = req.params;
-      const { format } = req.query as { format?: ReceiptFormat };
       const receiptRepo = getRepository(Receipt);
 
       const receipt = await receiptRepo.findOne({

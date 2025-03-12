@@ -1,10 +1,9 @@
-import * as PDFDocument from 'pdfkit';
-import * as XLSX from 'xlsx';
+import PDFDocument from 'pdfkit';
+import XLSX from 'xlsx';
 import { Receipt } from '../entities/Receipt';
 import { ReceiptFormat } from '../types/receipt';
-import { Readable } from 'stream';
-import * as QRCode from 'qrcode';
-import * as JsBarcode from 'jsbarcode';
+import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 import { Canvas } from 'canvas';
 
 export class ReceiptGenerator {
@@ -44,7 +43,7 @@ export class ReceiptGenerator {
     return canvas.toBuffer();
   }
 
-  private static formatDate(date: Date, format: string, locale: string): string {
+  private static formatDate(date: Date, _format: string, locale: string): string {
     return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: '2-digit',
@@ -70,7 +69,7 @@ export class ReceiptGenerator {
         const doc = new PDFDocument({ margin: 50 });
         const chunks: Buffer[] = [];
 
-        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 

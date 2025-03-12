@@ -7,7 +7,7 @@ import { UserRole } from '../types/auth';
 
 export class UserController {
   // Get all users
-  static async getAllUsers(req: Request, res: Response, next: NextFunction) {
+  static async getAllUsers(_req: Request, res: Response, next: NextFunction) {
     try {
       const userRepository = getRepository(User);
       const users = await userRepository.find({

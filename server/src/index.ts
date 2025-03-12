@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { setupRoutes } from './routes';
+import routes from './routes';
 import { setupDatabase } from './config/database';
 import { setupSocketHandlers } from './socket';
 import { errorHandler } from './middleware/errorHandler';
@@ -26,8 +26,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root route
+app.get('/', (_req, res) => {
+  res.json({
+    message: 'Welcome to the Parking System API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      vehicles: '/api/vehicles',
+      sessions: '/api/sessions',
+      settings: '/api/settings',
+      users: '/api/users'
+    }
+  });
+});
+
 // Setup routes
-setupRoutes(app);
+app.use('/api', routes);
 
 // Setup socket handlers
 setupSocketHandlers(io);

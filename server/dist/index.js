@@ -9,7 +9,7 @@ const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const routes_1 = require("./routes");
+const routes_1 = __importDefault(require("./routes"));
 const database_1 = require("./config/database");
 const socket_1 = require("./socket");
 const errorHandler_1 = require("./middleware/errorHandler");
@@ -26,7 +26,20 @@ const io = new socket_io_1.Server(httpServer, {
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-(0, routes_1.setupRoutes)(app);
+app.get('/', (_req, res) => {
+    res.json({
+        message: 'Welcome to the Parking System API',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth',
+            vehicles: '/api/vehicles',
+            sessions: '/api/sessions',
+            settings: '/api/settings',
+            users: '/api/users'
+        }
+    });
+});
+app.use('/api', routes_1.default);
 (0, socket_1.setupSocketHandlers)(io);
 app.use(errorHandler_1.errorHandler);
 const PORT = process.env.PORT || 5000;

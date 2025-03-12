@@ -350,7 +350,7 @@ export class ParkingController {
     }
   }
 
-  async getStatistics(req: Request, res: Response) {
+  async getStatistics(_req: Request, res: Response) {
     try {
       const parkingRepo = getRepository(ParkingSession);
       const today = new Date();

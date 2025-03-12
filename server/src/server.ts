@@ -1,5 +1,4 @@
 import express from 'express';
-import { createConnection } from 'typeorm';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -8,7 +7,8 @@ import dotenv from 'dotenv';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
-import { socketEvents } from './socket';
+import { setupSocketHandlers } from './socket';
+import { AppDataSource } from './config/database';
 
 // Load environment variables
 dotenv.config();
@@ -42,10 +42,10 @@ const io = new Server(server, {
 });
 
 // Setup socket events
-socketEvents(io);
+setupSocketHandlers(io);
 
 // Connect to database and start server
-createConnection()
+AppDataSource.initialize()
   .then(() => {
     server.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
