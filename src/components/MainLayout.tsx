@@ -37,6 +37,7 @@ import { logout } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
 import { SidebarContent } from './SidebarContent';
+import { useAppDispatch } from '../store';
 
 const drawerWidth = 240;
 
@@ -89,7 +90,7 @@ const StyledMenuItem = styled((props: StyledMenuItemProps) => (
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -118,7 +119,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleLogout = () => {
     handleAccountMenuClose();
-    dispatch(logout());
+    void dispatch(logout());
     navigate('/login');
   };
 
@@ -168,7 +169,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Tooltip title="Account settings">
                 <span>
                   <IconButton
-                    onClick={() => handleAccountMenuOpen}
+                    onClick={handleAccountMenuOpen as unknown as () => void}
                     color="inherit"
                     size="large"
                     edge="end"

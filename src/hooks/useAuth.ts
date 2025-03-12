@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import { AuthState, LoginCredentials, User, Permission } from '../types/auth';
+
+interface LoginResponse {
+  user: User;
+  token: string;
+  refreshToken: string;
+}
+
+interface ApiError {
+  message: string;
+}
 
 const initialState: AuthState = {
   user: null,
@@ -45,26 +56,16 @@ export const useAuth = () => {
   const login = useCallback(async (credentials: LoginCredentials) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      // Replace with your actual API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
+      const response = await axios.post<LoginResponse>('/auth/login', credentials);
+      const { user, token, refreshToken } = response.data;
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
+      // Store in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
-      const data = await response.json();
-      const { user, token, refreshToken } = data;
-
-      // Store in localStorage if rememberMe is true
-      if (credentials.rememberMe) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-      }
+      // Update axios default headers
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       setState({
         user,
@@ -74,12 +75,14 @@ export const useAuth = () => {
         isLoading: false,
         error: null
       });
-    } catch (error) {
+    } catch (err: unknown) {
+      console.error('Login error:', err);
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Login failed'
+        error: err instanceof Error ? err.message : 'Login failed'
       }));
+      throw err;
     }
   }, []);
 
@@ -87,6 +90,7 @@ export const useAuth = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
     setState(initialState);
   }, []);
 
@@ -97,11 +101,11 @@ export const useAuth = () => {
       // Superadmin has all permissions
       if (state.user.role === 'superadmin') return true;
 
-      return state.user.permissions.some(permission => {
+      return state.user.permissions?.some(permission => {
         if (permission.resource === '*') return true;
         if (permission.resource !== resource) return false;
         return permission.actions.includes(action);
-      });
+      }) || false;
     },
     [state.user]
   );

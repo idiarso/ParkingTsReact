@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from './store';
 import { RootState } from './store';
 import { initSocket } from './services/socketService';
-import { setUser } from './store/slices/authSlice';
+import axios from 'axios';
 
 // Components
 import { MainLayout } from './components/MainLayout';
@@ -34,30 +34,27 @@ const theme = createTheme({
 });
 
 function App() {
-  const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user, token } = useAppSelector((state: RootState) => state.auth);
+
+  // Initialize axios auth header
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   // Initialize socket connection
   useEffect(() => {
-    const socket = initSocket();
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  // Check for existing user session
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        dispatch(setUser(userData));
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('user');
-      }
+    if (isAuthenticated) {
+      const socket = initSocket();
+      return () => {
+        socket.disconnect();
+      };
     }
-  }, [dispatch]);
+  }, [isAuthenticated]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -119,7 +116,7 @@ function App() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+              <ProtectedRoute>
                 <MainLayout>
                   <UserManagement />
                 </MainLayout>

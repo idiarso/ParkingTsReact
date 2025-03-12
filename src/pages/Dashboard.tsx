@@ -17,6 +17,11 @@ import {
   MenuItem,
   Tab,
   Tabs,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Alert,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -54,6 +59,9 @@ import {
 } from 'recharts';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, differenceInMinutes } from 'date-fns';
 import { SxProps, Theme } from '@mui/material/styles';
+import { getDashboardStatistics } from '../services/api';
+import { useSocket } from '../hooks/useSocket';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Constants
 const TOTAL_CAPACITY = 100;
@@ -472,6 +480,10 @@ export default function Dashboard() {
   ]);
   const [drillDownData, setDrillDownData] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [statistics, setStatistics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const socket = useSocket();
 
   const sessions = useSelector((state: RootState) => state.parkingSessions.sessions);
   const vehicles = useSelector((state: RootState) => state.vehicles.vehicles);
@@ -664,15 +676,57 @@ export default function Dashboard() {
     },
   ];
 
-  // Add real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Refresh data every minute
-      // You would typically dispatch an action to fetch fresh data here
-    }, 60000);
+  const fetchStatistics = async () => {
+    try {
+      setLoading(true);
+      const data = await getDashboardStatistics();
+      setStatistics(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch dashboard statistics');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    fetchStatistics();
+
+    // Listen for real-time updates
+    if (socket) {
+      socket.on('sessionUpdate', fetchStatistics);
+      socket.on('vehicleUpdate', fetchStatistics);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('sessionUpdate', fetchStatistics);
+        socket.off('vehicleUpdate', fetchStatistics);
+      }
+    };
+  }, [socket]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  if (!statistics) {
+    return null;
+  }
+
+  const { currentOccupancy, revenue, vehicleTypes, recentActivity } = statistics;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -793,6 +847,37 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
+        </Grid>
+
+        {/* Recent Activity */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Recent Activity
+            </Typography>
+            <List>
+              {recentActivity.map((session: any) => (
+                <ListItem key={session.id}>
+                  <ListItemIcon>
+                    {session.exitTime ? <CompareIcon /> : <VehicleIcon />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`Vehicle: ${session.plateNumber}`}
+                    secondary={`${format(new Date(session.entryTime), 'PPpp')}${
+                      session.exitTime
+                        ? ` - ${format(new Date(session.exitTime), 'PPpp')}`
+                        : ' (Active)'
+                    }`}
+                  />
+                  {session.fee && (
+                    <Typography variant="body2" color="text.secondary">
+                      ${session.fee.toFixed(2)}
+                    </Typography>
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
         </Grid>
       </Grid>
 

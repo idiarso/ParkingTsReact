@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../store';
 import {
   MenuItem,
   ListItemIcon,
@@ -36,12 +36,12 @@ interface MenuOption {
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({ anchorEl, onClose }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
   const handleLogout = () => {
-    dispatch(logout());
+    void dispatch(logout());
     onClose();
   };
 

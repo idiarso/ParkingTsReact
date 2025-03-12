@@ -22,7 +22,7 @@ const Login = () => {
     setError('');
     
     try {
-      await login({ email: username, password });
+      await login({ username, password });
       navigate('/dashboard');
     } catch (err) {
       setError('Invalid username or password');
@@ -63,9 +63,9 @@ const Login = () => {
             <MuiTextField
               fullWidth
               id="username"
-              label="Email"
+              label="Username"
               name="username"
-              autoComplete="email"
+              autoComplete="username"
               autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
