@@ -1,129 +1,118 @@
 import { Manager } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
-
-interface ServerToClientEvents {
-  connect: () => void;
-  disconnect: () => void;
-}
-
-interface ClientToServerEvents {
-  'register:client': (data: { type: string }) => void;
-  'vehicle:exit': (data: { licensePlate: string; duration: number; fee: number }) => void;
-  'gate:status:update': (data: { gateId: string; status: 'open' | 'closed' }) => void;
-}
-
-interface InterServerEvents {
-}
-
-interface SocketData {
-}
-
 class SocketService {
   private socket: any = null;
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private isRegistered: boolean = false;
+  private isRegistered = false;
+  private connectionChangeCallbacks: ((connected: boolean) => void)[] = [];
 
+  // Connect to socket server
   connect() {
-    if (!this.socket) {
-      try {
-        const manager = new Manager(SOCKET_URL, {
-          transports: ['websocket'],
-          autoConnect: true,
-        });
+    try {
+      const manager = new Manager('http://localhost:3001', {
+        reconnectionDelayMax: 10000,
+        timeout: 20000,
+        autoConnect: true
+      });
 
-        const newSocket = manager.socket('/');
+      this.socket = manager.socket('/');
 
-        newSocket.on('connect', () => {
-          console.log('Connected to socket server');
-          this.registerAsGateOut();
-        });
+      this.socket.on('connect', () => {
+        console.log('Socket connected');
+        this.notifyConnectionChange(true);
+        this.register();
+      });
 
-        newSocket.on('disconnect', () => {
-          console.log('Disconnected from socket server');
-          this.isRegistered = false;
-          this.reconnect();
-        });
+      this.socket.on('disconnect', () => {
+        console.log('Socket disconnected');
+        this.isRegistered = false;
+        this.notifyConnectionChange(false);
+      });
 
-        this.socket = newSocket;
-      } catch (error) {
-        console.error('Failed to connect to socket server:', error);
-      }
+      this.socket.on('connect_error', (error: any) => {
+        console.error('Socket connection error:', error);
+        this.notifyConnectionChange(false);
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize socket:', error);
+      return false;
     }
   }
 
-  private registerAsGateOut() {
-    if (!this.socket || this.isRegistered) return;
-    
-    this.socket.emit('register:client', { type: 'gate-out' });
-    this.isRegistered = true;
-    console.log('Registered as gate-out client');
-  }
-
-  private reconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-    }
-
-    this.reconnectTimer = setTimeout(() => {
-      console.log('Attempting to reconnect...');
-      this.connect();
-    }, 5000);
-  }
-
+  // Disconnect from socket server
   disconnect() {
-    if (this.socket) {
+    if (this.socket && this.socket.connected) {
       this.socket.disconnect();
       this.socket = null;
-    }
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    this.isRegistered = false;
-  }
-
-  notifyVehicleExit(licensePlate: string, duration: number, fee: number) {
-    if (!this.socket || !this.isRegistered) {
-      console.warn('Socket not connected or not registered, cannot notify vehicle exit');
-      return;
-    }
-    
-    this.socket.emit('vehicle:exit', { licensePlate, duration, fee });
-    console.log(`Sent vehicle exit notification for ${licensePlate}`);
-  }
-
-  updateGateStatus(gateId: string, status: 'open' | 'closed') {
-    if (!this.socket || !this.isRegistered) {
-      console.warn('Socket not connected or not registered, cannot update gate status');
-      return;
-    }
-    
-    this.socket.emit('gate:status:update', { gateId, status });
-    console.log(`Sent gate status update for gate ${gateId}: ${status}`);
-  }
-
-  emit(event: string, data: any) {
-    if (this.socket && this.isRegistered) {
-      this.socket.emit(event, data);
+      this.isRegistered = false;
     }
   }
 
-  on(event: string, callback: (data: any) => void) {
-    if (this.socket) {
-      this.socket.on(event, callback);
+  // Register as a gate-out client
+  private register() {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('register', { 
+        clientType: 'gate-out', 
+        clientId: 'gate-out-1' 
+      });
+      this.isRegistered = true;
     }
   }
 
-  off(event: string, callback: (data: any) => void) {
-    if (this.socket) {
-      this.socket.off(event, callback);
-    }
+  // Reconnect to socket server
+  reconnect() {
+    this.disconnect();
+    return this.connect();
   }
 
+  // Check if socket is connected
   isConnected(): boolean {
-    return !!this.socket && this.socket.connected && this.isRegistered;
+    return this.socket && this.socket.connected;
+  }
+
+  // Update gate status (open/closed)
+  updateGateStatus(gateId: string, status: 'open' | 'closed'): boolean {
+    if (this.socket && this.isRegistered) {
+      this.socket.emit('gate-status', { gateId, status });
+      return true;
+    }
+    return false;
+  }
+
+  // Notify about vehicle exit
+  notifyVehicleExit(exitData: { 
+    ticketId: string, 
+    licensePlate: string, 
+    exitTime: string,
+    fee: number
+  }): boolean {
+    if (this.socket && this.isRegistered) {
+      this.socket.emit('vehicle-exit', exitData);
+      return true;
+    }
+    console.warn('Socket not connected or not registered, vehicle exit notification not sent');
+    return false;
+  }
+
+  // Add connection change listener
+  onConnectionChange(callback: (connected: boolean) => void) {
+    this.connectionChangeCallbacks.push(callback);
+    // Immediately notify with current status
+    if (callback) {
+      callback(this.isConnected());
+    }
+  }
+
+  // Notify all listeners about connection changes
+  private notifyConnectionChange(connected: boolean) {
+    for (const callback of this.connectionChangeCallbacks) {
+      callback(connected);
+    }
   }
 }
 
-export default new SocketService(); 
+// Create a singleton instance
+const socketService = new SocketService();
+
+export default socketService; 

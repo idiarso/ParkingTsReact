@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import GateOutDashboard from './components/Dashboard';
+import GateOutDashboard from './components/GateOutDashboard';
 
 // Create theme instance
 const theme = createTheme({
@@ -11,10 +11,20 @@ const theme = createTheme({
       main: '#d32f2f', // Red color for exit gate
     },
     secondary: {
-      main: '#dc004e',
+      main: '#1976d2',
     },
     success: {
-      main: '#2e7d32',
+      main: '#4caf50',
+      light: '#e8f5e9',
+    },
+    error: {
+      main: '#f44336',
+    },
+    warning: {
+      main: '#ff9800',
+    },
+    info: {
+      main: '#2196f3',
     },
   },
 });
@@ -24,9 +34,13 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          <Route path="/" element={<GateOutDashboard />} />
-        </Routes>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Box component="main" sx={{ flexGrow: 1 }}>
+            <Routes>
+              <Route path="/" element={<GateOutDashboard />} />
+            </Routes>
+          </Box>
+        </Box>
       </Router>
     </ThemeProvider>
   );

@@ -7,7 +7,7 @@ export const OCRTester: React.FC = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCapture = async (imageSrc: string) => {
+  const handlePlateDetected = async (plate: string, confidence: number, imageSrc: string) => {
     try {
       setError(null);
       const ocrResult = await detectLicensePlate(imageSrc);
@@ -23,7 +23,7 @@ export const OCRTester: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Webcam Capture
         </Typography>
-        <WebcamCapture onCapture={handleCapture} />
+        <WebcamCapture onPlateDetected={handlePlateDetected} autoDetect={false} />
       </Paper>
 
       {error && (

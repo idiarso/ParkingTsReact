@@ -85,7 +85,7 @@ export const GateInScreen: React.FC = () => {
     }
   };
 
-  const handleCameraCapture = (detectedPlate: string) => {
+  const handleCameraCapture = (detectedPlate: string, confidence: number, imageSrc: string) => {
     setPlateNumber(detectedPlate);
     setValidationError(null);
     setInputMode('manual'); // Switch to manual mode after capture
@@ -120,7 +120,12 @@ export const GateInScreen: React.FC = () => {
       
       if (response.success) {
         // Notify about vehicle entry through socket
-        socketService.notifyVehicleEntry(entry.plateNumber, entry.vehicleType);
+        socketService.notifyVehicleEntry({
+          ticketId: `TICKET-${Date.now()}`,
+          licensePlate: entry.plateNumber,
+          vehicleType: entry.vehicleType,
+          entryTime: entry.entryTime
+        });
         
         // Simulate gate opening
         socketService.updateGateStatus('entry-gate-1', 'open');
@@ -196,7 +201,7 @@ export const GateInScreen: React.FC = () => {
         </Box>
         
         {inputMode === 'camera' ? (
-          <WebcamCapture onCapture={handleCameraCapture} />
+          <WebcamCapture onPlateDetected={handleCameraCapture} autoDetect={false} />
         ) : (
           <StyledPaper elevation={3}>
             <form onSubmit={handleSubmit}>

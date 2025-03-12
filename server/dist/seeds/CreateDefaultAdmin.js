@@ -33,13 +33,13 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const ormconfig_1 = require("../config/ormconfig");
+const database_1 = require("../config/database");
 const entities_1 = require("../entities");
 const bcrypt = __importStar(require("bcryptjs"));
 async function createDefaultAdmin() {
     try {
-        await ormconfig_1.AppDataSource.initialize();
-        const userRepository = ormconfig_1.AppDataSource.getRepository(entities_1.User);
+        await database_1.AppDataSource.initialize();
+        const userRepository = database_1.AppDataSource.getRepository(entities_1.User);
         const existingAdmin = await userRepository.findOne({
             where: { username: 'admin' }
         });
@@ -64,8 +64,8 @@ async function createDefaultAdmin() {
         console.error('Error creating admin user:', error);
     }
     finally {
-        if (ormconfig_1.AppDataSource.isInitialized) {
-            await ormconfig_1.AppDataSource.destroy();
+        if (database_1.AppDataSource.isInitialized) {
+            await database_1.AppDataSource.destroy();
         }
     }
 }

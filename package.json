@@ -14,6 +14,7 @@
     "@types/react": "^19.0.10",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-webcam": "^1.1.0",
+    "date-fns": "^2.30.0",
     "idb": "^8.0.2",
     "jspdf": "^3.0.0",
     "morgan": "^1.10.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/socket.io-client": "^1.4.36",
-    "@types/tesseract.js": "^2.0.0"
+    "@types/tesseract.js": "^2.0.0",
+    "@types/uuid": "^10.0.0"
   }
 }

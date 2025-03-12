@@ -11,6 +11,7 @@ const settings_1 = __importDefault(require("./settings"));
 const users_1 = __importDefault(require("./users"));
 const parking_1 = __importDefault(require("./parking"));
 const receipts_1 = __importDefault(require("./receipts"));
+const dashboard_1 = __importDefault(require("./dashboard"));
 const router = (0, express_1.Router)();
 router.use('/auth', auth_1.default);
 router.use('/vehicles', vehicles_1.default);
@@ -19,5 +20,6 @@ router.use('/settings', settings_1.default);
 router.use('/users', users_1.default);
 router.use('/parking', parking_1.default);
 router.use('/receipts', receipts_1.default);
+router.use('/dashboard', dashboard_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

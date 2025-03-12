@@ -6,26 +6,38 @@ class SocketService {
   private socket: any = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
+  private connectionChangeCallbacks: ((connected: boolean) => void)[] = [];
 
   connect() {
     if (!this.socket) {
-      const manager = new Manager(SOCKET_URL, {
-        transports: ['websocket'],
-        autoConnect: true,
-      });
+      try {
+        const manager = new Manager(SOCKET_URL, {
+          transports: ['websocket'],
+          autoConnect: true,
+        });
 
-      this.socket = manager.socket('/');
+        this.socket = manager.socket('/');
 
-      this.socket.on('connect', () => {
-        console.log('Connected to socket server');
-        this.registerAsGateIn();
-      });
+        this.socket.on('connect', () => {
+          console.log('Connected to socket server');
+          this.registerAsGateIn();
+          this.notifyConnectionChange(true);
+        });
 
-      this.socket.on('disconnect', () => {
-        console.log('Disconnected from socket server');
-        this.isRegistered = false;
-        this.reconnect();
-      });
+        this.socket.on('disconnect', () => {
+          console.log('Disconnected from socket server');
+          this.isRegistered = false;
+          this.notifyConnectionChange(false);
+          this.reconnect();
+        });
+
+        this.socket.on('connect_error', (error: any) => {
+          console.error('Socket connection error:', error);
+          this.notifyConnectionChange(false);
+        });
+      } catch (error) {
+        console.error('Failed to initialize socket:', error);
+      }
     }
   }
 
@@ -60,14 +72,19 @@ class SocketService {
     this.isRegistered = false;
   }
 
-  notifyVehicleEntry(licensePlate: string, vehicleType: string) {
+  notifyVehicleEntry(data: { 
+    ticketId: string; 
+    licensePlate: string; 
+    vehicleType: string;
+    entryTime: string;
+  }) {
     if (!this.socket || !this.isRegistered) {
       console.warn('Socket not connected or not registered, cannot notify vehicle entry');
       return;
     }
     
-    this.socket.emit('vehicle:entry', { licensePlate, vehicleType });
-    console.log(`Sent vehicle entry notification for ${licensePlate}`);
+    this.socket.emit('vehicle:entry', data);
+    console.log(`Sent vehicle entry notification for ${data.licensePlate}`);
   }
 
   updateGateStatus(gateId: string, status: 'open' | 'closed') {
@@ -78,6 +95,28 @@ class SocketService {
     
     this.socket.emit('gate:status:update', { gateId, status });
     console.log(`Sent gate status update for gate ${gateId}: ${status}`);
+  }
+
+  onConnectionChange(callback: (connected: boolean) => void) {
+    if (typeof callback !== 'function') {
+      console.error('onConnectionChange requires a function callback');
+      return;
+    }
+    this.connectionChangeCallbacks.push(callback);
+    // Immediately call with current status
+    callback(this.isConnected());
+  }
+
+  private notifyConnectionChange(connected: boolean) {
+    for (const callback of this.connectionChangeCallbacks) {
+      if (typeof callback === 'function') {
+        try {
+          callback(connected);
+        } catch (error) {
+          console.error('Error in connection change callback:', error);
+        }
+      }
+    }
   }
 
   emit(event: string, data: any) {
@@ -103,4 +142,8 @@ class SocketService {
   }
 }
 
-export default new SocketService(); 
+// Create a singleton instance
+const socketServiceInstance = new SocketService();
+
+// Export the singleton instance
+export default socketServiceInstance; 
