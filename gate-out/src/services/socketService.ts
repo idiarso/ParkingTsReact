@@ -1,103 +1,41 @@
-import { io, Socket } from 'socket.io-client';
+import { io, Socket as ClientSocket } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 class SocketService {
-  private socket: Socket | null = null;
+  private socket: ClientSocket | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
 
   connect() {
-    if (this.socket) return;
+    if (!this.socket) {
+      this.socket = io(SOCKET_URL, {
+        transports: ['websocket'],
+        autoConnect: true,
+      });
 
-    this.socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+      this.socket.on('connect', () => {
+        console.log('Connected to socket server');
+        this.isRegistered = true;
+      });
 
-    this.setupEventListeners();
+      this.socket.on('disconnect', () => {
+        console.log('Disconnected from socket server');
+        this.isRegistered = false;
+        this.reconnect();
+      });
+    }
   }
 
-  private setupEventListeners() {
-    if (!this.socket) return;
-
-    // Connection events
-    this.socket.on('connect', this.handleConnect.bind(this));
-    this.socket.on('disconnect', this.handleDisconnect.bind(this));
-    this.socket.on('connect_error', this.handleConnectError.bind(this));
-    
-    // System events
-    this.socket.on('gate:status:update', this.handleGateStatusUpdate.bind(this));
-    this.socket.on('parking:status:update', this.handleParkingStatusUpdate.bind(this));
-    this.socket.on('vehicle:entry:update', this.handleVehicleEntryUpdate.bind(this));
-  }
-
-  private handleConnect() {
-    console.log('Socket connected');
-    
-    // Clear any reconnect timer
+  private reconnect() {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
     }
-    
-    // Register as gate-out client
-    this.registerAsGateOut();
-    
-    // Send a ping to test connection
-    this.ping((response) => {
-      console.log('Ping response:', response);
-    });
-  }
 
-  private registerAsGateOut() {
-    if (!this.socket || this.isRegistered) return;
-    
-    this.socket.emit('register:client', { type: 'gate-out' });
-    this.isRegistered = true;
-    console.log('Registered as gate-out client');
-  }
-
-  private handleDisconnect(reason: string) {
-    console.log(`Socket disconnected: ${reason}`);
-    
-    // Reset registration status
-    this.isRegistered = false;
-    
-    // Attempt to reconnect if not already reconnecting
-    if (!this.reconnectTimer) {
-      this.reconnectTimer = setTimeout(() => this.reconnect(), 5000);
-    }
-  }
-
-  private handleConnectError(error: Error) {
-    console.error('Socket connection error:', error);
-    this.isRegistered = false;
-  }
-  
-  private handleGateStatusUpdate(data: { gateId: string; status: 'open' | 'closed' }) {
-    console.log(`Gate ${data.gateId} status updated to ${data.status}`);
-    // Additional logic can be added here if needed
-  }
-  
-  private handleParkingStatusUpdate(data: { total: number; occupied: number }) {
-    console.log(`Parking status updated - Total: ${data.total}, Occupied: ${data.occupied}`);
-    // Additional logic can be added here if needed
-  }
-  
-  private handleVehicleEntryUpdate(data: { licensePlate: string; vehicleType: string }) {
-    console.log(`Vehicle entry update: ${data.licensePlate} (${data.vehicleType})`);
-    // Additional logic can be added here if needed
-  }
-
-  reconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.connect();
-    } else {
+    this.reconnectTimer = setTimeout(() => {
+      console.log('Attempting to reconnect...');
       this.connect();
-    }
+    }, 5000);
   }
 
   disconnect() {
@@ -105,57 +43,29 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
     }
-    
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    
-    this.isRegistered = false;
   }
 
-  // Method to notify about vehicle exit
-  notifyVehicleExit(licensePlate: string, duration: number, fee: number) {
-    if (!this.socket) {
-      console.warn('Socket not connected, cannot send vehicle exit notification');
-      return;
+  emit(event: string, data: any) {
+    if (this.socket && this.isRegistered) {
+      this.socket.emit(event, data);
     }
-    
-    this.socket.emit('vehicle:exit', { 
-      licensePlate, 
-      duration,
-      fee 
-    });
-    console.log(`Sent vehicle exit notification for ${licensePlate}`);
   }
 
-  // Method to update gate status
-  updateGateStatus(gateId: string, status: 'open' | 'closed') {
-    if (!this.socket) {
-      console.warn('Socket not connected, cannot send gate status update');
-      return;
+  on(event: string, callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on(event, callback);
     }
-    
-    this.socket.emit('gate:status', { gateId, status });
-    console.log(`Sent gate status update for gate ${gateId}: ${status}`);
   }
-  
-  // Method to check server connectivity
-  ping(callback: (response: { time: string }) => void) {
-    if (!this.socket) {
-      console.warn('Socket not connected, cannot ping server');
-      return;
+
+  off(event: string, callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.off(event, callback);
     }
-    
-    this.socket.emit('ping', callback);
-  }
-  
-  // Method to check if socket is connected
-  isConnected(): boolean {
-    return !!this.socket && this.socket.connected;
   }
 }
 
-// Create a singleton instance
-const socketService = new SocketService();
-export default socketService; 
+export default new SocketService(); 
