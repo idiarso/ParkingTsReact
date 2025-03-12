@@ -1,5 +1,5 @@
-import { io } from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
+import { Manager } from 'socket.io-client';
+import type { Socket } from 'socket.io-client/build/esm/socket';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
@@ -10,10 +10,12 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      this.socket = io(SOCKET_URL, {
+      const manager = new Manager(SOCKET_URL, {
         transports: ['websocket'],
         autoConnect: true,
       });
+
+      this.socket = manager.socket('/');
 
       this.socket.on('connect', () => {
         console.log('Connected to socket server');
