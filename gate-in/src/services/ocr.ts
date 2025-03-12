@@ -21,6 +21,9 @@ export interface OCRResult {
   description: string;
   isValid: boolean;
   validationErrors: string[];
+  success?: boolean;
+  plateNumber?: string;
+  error?: string;
 }
 
 interface CacheEntry {
@@ -29,6 +32,9 @@ interface CacheEntry {
 }
 
 const resultCache = new Map<string, CacheEntry>();
+
+// Declare tesseractWorker variable
+let tesseractWorker: TesseractWorker | null = null;
 
 function cleanupCache() {
   const now = Date.now();

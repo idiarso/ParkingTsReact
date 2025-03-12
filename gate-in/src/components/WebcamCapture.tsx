@@ -101,16 +101,16 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({ onCapture }) => {
     try {
       const result = await detectLicensePlate(imageSrc);
       
-      if (result.success && result.plateNumber) {
-        if (result.confidence && result.confidence > 0.85) {
+      if (result.isValid && result.text) {
+        if (result.confidence > 0.85) {
           successSound.current.play();
-          onCapture(result.plateNumber);
+          onCapture(result.text);
           setConfidence(result.confidence);
           setLastDetectionTime(Date.now());
           return true;
         }
       } else {
-        setError(result.error || 'Failed to detect license plate');
+        setError(result.validationErrors.join(', ') || 'Failed to detect license plate');
         errorSound.current.play();
       }
     } catch (err) {

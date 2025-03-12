@@ -1,4 +1,5 @@
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
@@ -122,6 +123,12 @@ class SocketService {
     console.log(`Sent vehicle entry notification for ${licensePlate}`);
   }
 
+  // Method to notify about vehicle exit
+  notifyVehicleExit(licensePlate: string, duration: number, fee: number) {
+    if (!this.socket) return;
+    this.socket.emit('vehicle:exit', { licensePlate, duration, fee });
+  }
+
   // Method to update gate status
   updateGateStatus(gateId: string, status: 'open' | 'closed') {
     if (!this.socket) {
@@ -129,7 +136,7 @@ class SocketService {
       return;
     }
     
-    this.socket.emit('gate:status', { gateId, status });
+    this.socket.emit('gate:status:update', { gateId, status });
     console.log(`Sent gate status update for gate ${gateId}: ${status}`);
   }
   

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Typography } from '@mui/material';
-import OCRTester from '../components/OCRTester';
+import { OCRTester } from '../components/OCRTester';
 
 const TestPage: React.FC = () => {
   return (

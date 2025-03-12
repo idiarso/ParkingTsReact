@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -6,34 +6,33 @@ import {
   TextField,
   Button,
   Grid,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
+  Select,
+  MenuItem,
+  Card,
+  CardContent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Tooltip,
-  Alert,
-  CircularProgress,
-  Card,
-  CardContent,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Alert,
+  CircularProgress,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   DirectionsCar,
-  CameraAlt,
   Print,
+  PhotoCamera,
   Refresh,
-  CheckCircle,
-  Error as ErrorIcon
+  Add
 } from '@mui/icons-material';
 
 interface VehicleEntry {
@@ -44,143 +43,32 @@ interface VehicleEntry {
   driverPhone?: string;
 }
 
-interface CameraViewProps {
-  onCapture: (plateNumber: string) => void;
-  isProcessing: boolean;
-}
-
-// Mock camera view component
-const CameraView: React.FC<CameraViewProps> = ({ onCapture, isProcessing }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isActive, setIsActive] = useState(false);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsActive(true);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-    }
-  };
-
-  const captureImage = () => {
-    // Simulate plate recognition
-    setTimeout(() => {
-      onCapture('ABC123');
-    }, 1500);
-  };
-
-  return (
-    <Box sx={{ position: 'relative' }}>
-      {!isActive ? (
-        <Box
-          sx={{
-            height: 200,
-            bgcolor: 'grey.200',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 1
-          }}
-        >
-          <Button
-            startIcon={<CameraAlt />}
-            variant="contained"
-            onClick={startCamera}
-          >
-            Start Camera
-          </Button>
-        </Box>
-      ) : (
-        <>
-          <video
-            ref={videoRef}
-            autoPlay
-            style={{
-              width: '100%',
-              height: '200px',
-              objectFit: 'cover',
-              borderRadius: '4px'
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 8,
-              right: 8,
-              display: 'flex',
-              gap: 1
-            }}
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={captureImage}
-              disabled={isProcessing}
-              startIcon={isProcessing ? <CircularProgress size={20} /> : <CameraAlt />}
-            >
-              {isProcessing ? 'Processing...' : 'Capture'}
-            </Button>
-          </Box>
-        </>
-      )}
-    </Box>
-  );
-};
-
-// Ticket preview component
-const TicketPreview: React.FC<{ entry: VehicleEntry }> = ({ entry }) => (
-  <Card sx={{ minWidth: 275, maxWidth: 400, mx: 'auto', my: 2 }}>
-    <CardContent>
-      <Typography variant="h6" gutterBottom align="center">
-        Parking Ticket
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Plate Number: {entry.plateNumber}
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Vehicle Type: {entry.vehicleType}
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Entry Time: {new Date(entry.entryTime).toLocaleString()}
-      </Typography>
-      {entry.driverName && (
-        <Typography variant="body1" gutterBottom>
-          Driver: {entry.driverName}
-        </Typography>
-      )}
-      {entry.driverPhone && (
-        <Typography variant="body1" gutterBottom>
-          Contact: {entry.driverPhone}
-        </Typography>
-      )}
-    </CardContent>
-  </Card>
-);
+// Mock data for recent entries
+const mockRecentEntries: VehicleEntry[] = [
+  {
+    plateNumber: 'B 1234 XYZ',
+    vehicleType: 'Mobil',
+    entryTime: '2024-03-12 09:30:00',
+    driverName: 'Budi Santoso',
+    driverPhone: '081234567890'
+  },
+  {
+    plateNumber: 'D 5678 ABC',
+    vehicleType: 'Motor',
+    entryTime: '2024-03-12 09:15:00'
+  }
+];
 
 const GateInDashboard: React.FC = () => {
-  const [formData, setFormData] = useState<VehicleEntry>({
-    plateNumber: '',
-    vehicleType: '',
-    entryTime: new Date().toISOString(),
-    driverName: '',
-    driverPhone: ''
-  });
+  const [plateNumber, setPlateNumber] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
+  const [driverName, setDriverName] = useState('');
+  const [driverPhone, setDriverPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showTicket, setShowTicket] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [recentEntries, setRecentEntries] = useState<VehicleEntry[]>([]);
-
-  const handlePlateRecognition = (plateNumber: string) => {
-    setFormData(prev => ({
-      ...prev,
-      plateNumber
-    }));
-    setIsProcessing(false);
-  };
+  const [showTicket, setShowTicket] = useState(false);
+  const [recentEntries, setRecentEntries] = useState<VehicleEntry[]>(mockRecentEntries);
+  const [showCamera, setShowCamera] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,47 +76,54 @@ const GateInDashboard: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Validate form
-      if (!formData.plateNumber || !formData.vehicleType) {
-        throw new Error('Please fill in all required fields');
+      if (!plateNumber.trim() || !vehicleType) {
+        throw new Error('Nomor plat dan jenis kendaraan harus diisi');
+      }
+
+      // Validate Indonesian plate number format
+      const plateRegex = /^[A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,3}$/;
+      if (!plateRegex.test(plateNumber.trim())) {
+        throw new Error('Format nomor plat tidak valid (Contoh: B 1234 XYZ)');
+      }
+
+      // Validate phone number if provided
+      if (driverPhone && !/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(driverPhone)) {
+        throw new Error('Nomor telepon tidak valid (Contoh: 081234567890)');
       }
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Update recent entries
-      setRecentEntries(prev => [
-        {
-          ...formData,
-          entryTime: new Date().toISOString()
-        },
-        ...prev
-      ]);
+      const newEntry: VehicleEntry = {
+        plateNumber: plateNumber.trim().toUpperCase(),
+        vehicleType,
+        entryTime: new Date().toISOString(),
+        ...(driverName && { driverName }),
+        ...(driverPhone && { driverPhone })
+      };
 
-      // Show ticket
+      setRecentEntries(prev => [newEntry, ...prev]);
       setShowTicket(true);
 
       // Reset form
-      setFormData({
-        plateNumber: '',
-        vehicleType: '',
-        entryTime: new Date().toISOString(),
-        driverName: '',
-        driverPhone: ''
-      });
+      setPlateNumber('');
+      setVehicleType('');
+      setDriverName('');
+      setDriverPhone('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name as string]: value
-    }));
+  const handleCapturePlate = () => {
+    setShowCamera(true);
+    // Simulate plate capture
+    setTimeout(() => {
+      setShowCamera(false);
+      setPlateNumber('B 1234 XYZ');
+    }, 2000);
   };
 
   const handlePrint = () => {
@@ -238,7 +133,7 @@ const GateInDashboard: React.FC = () => {
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <DirectionsCar /> Gate Entry
+        <DirectionsCar /> Pintu Masuk
       </Typography>
 
       {error && (
@@ -247,91 +142,92 @@ const GateInDashboard: React.FC = () => {
         </Alert>
       )}
 
-      {/* Camera Section */}
-      <Paper sx={{ p: 3, mb: 4 }} elevation={2}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CameraAlt /> Plate Recognition
-        </Typography>
-        <CameraView onCapture={handlePlateRecognition} isProcessing={isProcessing} />
-      </Paper>
-
       {/* Entry Form */}
       <Paper sx={{ p: 3, mb: 4 }} elevation={2}>
         <Typography variant="h6" gutterBottom>
-          New Vehicle Entry
+          Data Kendaraan Masuk
         </Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={8}>
               <TextField
                 required
                 fullWidth
-                label="Plate Number"
-                name="plateNumber"
-                value={formData.plateNumber}
-                onChange={handleChange}
+                label="Nomor Plat"
+                value={plateNumber}
+                onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
                 disabled={isProcessing}
+                placeholder="Contoh: B 1234 XYZ"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleCapturePlate}
+                disabled={isProcessing}
+                startIcon={<PhotoCamera />}
+              >
+                Scan Plat
+              </Button>
+            </Grid>
+            <Grid item xs={12}>
               <FormControl fullWidth required>
-                <InputLabel>Vehicle Type</InputLabel>
+                <InputLabel>Jenis Kendaraan</InputLabel>
                 <Select
-                  name="vehicleType"
-                  value={formData.vehicleType}
-                  label="Vehicle Type"
-                  onChange={handleChange}
+                  value={vehicleType}
+                  onChange={(e) => setVehicleType(e.target.value)}
                   disabled={isProcessing}
                 >
-                  <MenuItem value="Car">Car</MenuItem>
-                  <MenuItem value="Motorcycle">Motorcycle</MenuItem>
-                  <MenuItem value="Truck">Truck</MenuItem>
+                  <MenuItem value="Mobil">Mobil</MenuItem>
+                  <MenuItem value="Motor">Motor</MenuItem>
+                  <MenuItem value="Truk">Truk</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Driver Name"
-                name="driverName"
-                value={formData.driverName}
-                onChange={handleChange}
+                label="Nama Pengemudi (Opsional)"
+                value={driverName}
+                onChange={(e) => setDriverName(e.target.value)}
                 disabled={isProcessing}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Driver Phone"
-                name="driverPhone"
-                value={formData.driverPhone}
-                onChange={handleChange}
+                label="Nomor Telepon (Opsional)"
+                value={driverPhone}
+                onChange={(e) => setDriverPhone(e.target.value)}
                 disabled={isProcessing}
+                placeholder="Contoh: 081234567890"
               />
             </Grid>
             <Grid item xs={12}>
               <Button
                 type="submit"
                 variant="contained"
-                size="large"
+                color="primary"
                 fullWidth
+                size="large"
                 disabled={isProcessing}
-                startIcon={isProcessing ? <CircularProgress size={20} /> : <CheckCircle />}
+                startIcon={isProcessing ? <CircularProgress size={20} /> : <Add />}
               >
-                {isProcessing ? 'Processing...' : 'Record Entry'}
+                {isProcessing ? 'Memproses...' : 'Proses Masuk'}
               </Button>
             </Grid>
           </Grid>
         </form>
       </Paper>
 
-      {/* Recent Entries Table */}
+      {/* Recent Entries */}
       <Paper sx={{ p: 3 }} elevation={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">
-            Recent Entries
+            Riwayat Masuk Terbaru
           </Typography>
-          <Tooltip title="Refresh">
+          <Tooltip title="Segarkan">
             <IconButton onClick={() => {}}>
               <Refresh />
             </IconButton>
@@ -341,11 +237,11 @@ const GateInDashboard: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Plate Number</TableCell>
-                <TableCell>Vehicle Type</TableCell>
-                <TableCell>Entry Time</TableCell>
-                <TableCell>Driver Name</TableCell>
-                <TableCell>Driver Phone</TableCell>
+                <TableCell>Nomor Plat</TableCell>
+                <TableCell>Jenis Kendaraan</TableCell>
+                <TableCell>Waktu Masuk</TableCell>
+                <TableCell>Pengemudi</TableCell>
+                <TableCell>Telepon</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -353,7 +249,7 @@ const GateInDashboard: React.FC = () => {
                 <TableRow key={index}>
                   <TableCell>{entry.plateNumber}</TableCell>
                   <TableCell>{entry.vehicleType}</TableCell>
-                  <TableCell>{new Date(entry.entryTime).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(entry.entryTime).toLocaleString('id-ID')}</TableCell>
                   <TableCell>{entry.driverName || '-'}</TableCell>
                   <TableCell>{entry.driverPhone || '-'}</TableCell>
                 </TableRow>
@@ -363,6 +259,24 @@ const GateInDashboard: React.FC = () => {
         </TableContainer>
       </Paper>
 
+      {/* Camera Dialog */}
+      <Dialog
+        open={showCamera}
+        onClose={() => setShowCamera(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Pemindaian Plat Nomor</DialogTitle>
+        <DialogContent>
+          <Box sx={{ p: 2, textAlign: 'center' }}>
+            <CircularProgress />
+            <Typography sx={{ mt: 2 }}>
+              Memindai plat nomor...
+            </Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
       {/* Ticket Dialog */}
       <Dialog
         open={showTicket}
@@ -370,18 +284,43 @@ const GateInDashboard: React.FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Entry Ticket</DialogTitle>
+        <DialogTitle>Tiket Parkir</DialogTitle>
         <DialogContent>
-          <TicketPreview entry={recentEntries[0] || formData} />
+          <Card sx={{ minWidth: 275, maxWidth: 400, mx: 'auto', my: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom align="center">
+                TIKET PARKIR
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                Nomor Plat: {plateNumber}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                Jenis Kendaraan: {vehicleType}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                Waktu Masuk: {new Date().toLocaleString('id-ID')}
+              </Typography>
+              {driverName && (
+                <Typography variant="body1" gutterBottom>
+                  Pengemudi: {driverName}
+                </Typography>
+              )}
+              {driverPhone && (
+                <Typography variant="body1" gutterBottom>
+                  Telepon: {driverPhone}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowTicket(false)}>Close</Button>
+          <Button onClick={() => setShowTicket(false)}>Tutup</Button>
           <Button
             startIcon={<Print />}
             variant="contained"
             onClick={handlePrint}
           >
-            Print Ticket
+            Cetak Tiket
           </Button>
         </DialogActions>
       </Dialog>
