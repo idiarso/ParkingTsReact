@@ -1,44 +1,29 @@
-import { AppDataSource } from './config/database';
-import { User } from './entities/User';
+import { Client } from 'pg';
+import * as dotenv from 'dotenv';
 
-async function testDatabase() {
-    try {
-        // Initialize the database connection
-        await AppDataSource.initialize();
-        console.log('Database connected successfully');
+dotenv.config();
 
-        const userRepository = AppDataSource.getRepository(User);
+const client = new Client({
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  user: process.env.DB_USERNAME || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'parking_system'
+});
 
-        // Delete existing admin user if exists
-        await userRepository.delete({ username: 'admin' });
-
-        // Create new admin user
-        const adminUser = new User();
-        adminUser.name = 'Administrator';
-        adminUser.username = 'admin';
-        adminUser.password = 'admin123';
-        adminUser.role = 'admin';
-        adminUser.isActive = true;
-
-        // The password will be hashed automatically by @BeforeInsert
-        await userRepository.save(adminUser);
-        console.log('Admin user created successfully');
-
-        // Test login
-        const user = await userRepository.findOne({ where: { username: 'admin' } });
-        if (user) {
-            const isValid = await user.validatePassword('admin123');
-            console.log('Password validation:', isValid);
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        // Close the connection
-        if (AppDataSource.isInitialized) {
-            await AppDataSource.destroy();
-        }
-    }
+async function testConnection() {
+  try {
+    console.log('Attempting to connect to database...');
+    await client.connect();
+    console.log('Successfully connected to database!');
+    
+    const result = await client.query('SELECT current_database(), current_user');
+    console.log('Database info:', result.rows[0]);
+    
+    await client.end();
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+  }
 }
 
-testDatabase(); 
+testConnection(); 

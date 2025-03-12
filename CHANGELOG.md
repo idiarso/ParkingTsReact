@@ -167,6 +167,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper handling of offline/online state transitions
 - Consistent styling across menu items
 - Permission-based menu item filtering
+- PostgreSQL database connection issues resolved
+- Server successfully running on port 5000
 
 ### Technical
 - Added IndexedDB indexes for efficient queries:
@@ -387,3 +389,11 @@ All planned features have been successfully implemented. The project now include
 - Password hashing for user accounts
 - Protected routes with authentication middleware
 - Environment variable configuration for sensitive data
+
+### Added
+- API endpoints configured and accessible:
+  - Authentication: `/api/auth`
+  - Vehicles management: `/api/vehicles`
+  - Parking sessions: `/api/sessions`
+  - System settings: `/api/settings`
+  - User management: `/api/users`
