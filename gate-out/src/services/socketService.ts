@@ -1,32 +1,54 @@
 import { Manager } from 'socket.io-client';
-import type { Socket } from 'socket.io-client/build/esm/socket';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
+interface ServerToClientEvents {
+  connect: () => void;
+  disconnect: () => void;
+}
+
+interface ClientToServerEvents {
+  'register:client': (data: { type: string }) => void;
+  'vehicle:exit': (data: { licensePlate: string; duration: number; fee: number }) => void;
+  'gate:status:update': (data: { gateId: string; status: 'open' | 'closed' }) => void;
+}
+
+interface InterServerEvents {
+}
+
+interface SocketData {
+}
+
 class SocketService {
-  private socket: Socket | null = null;
+  private socket: any = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
 
   connect() {
     if (!this.socket) {
-      const manager = new Manager(SOCKET_URL, {
-        transports: ['websocket'],
-        autoConnect: true,
-      });
+      try {
+        const manager = new Manager(SOCKET_URL, {
+          transports: ['websocket'],
+          autoConnect: true,
+        });
 
-      this.socket = manager.socket('/');
+        const newSocket = manager.socket('/');
 
-      this.socket.on('connect', () => {
-        console.log('Connected to socket server');
-        this.registerAsGateOut();
-      });
+        newSocket.on('connect', () => {
+          console.log('Connected to socket server');
+          this.registerAsGateOut();
+        });
 
-      this.socket.on('disconnect', () => {
-        console.log('Disconnected from socket server');
-        this.isRegistered = false;
-        this.reconnect();
-      });
+        newSocket.on('disconnect', () => {
+          console.log('Disconnected from socket server');
+          this.isRegistered = false;
+          this.reconnect();
+        });
+
+        this.socket = newSocket;
+      } catch (error) {
+        console.error('Failed to connect to socket server:', error);
+      }
     }
   }
 
