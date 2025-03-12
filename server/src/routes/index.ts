@@ -6,6 +6,7 @@ import settingsRoutes from './settings';
 import userRoutes from './users';
 import parkingRoutes from './parking';
 import receiptRoutes from './receipts';
+import dashboardRoutes from './dashboard';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use('/settings', settingsRoutes);
 router.use('/users', userRoutes);
 router.use('/parking', parkingRoutes);
 router.use('/receipts', receiptRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router; 
