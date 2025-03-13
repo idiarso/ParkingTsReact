@@ -6,7 +6,7 @@ export class ParkingSession {
   id: string;
 
   @Column()
-  plateNumber: string;
+  licensePlate: string;
 
   @Column()
   vehicleType: string;
@@ -24,7 +24,7 @@ export class ParkingSession {
   entryTime: Date;
 
   @Column({ nullable: true })
-  exitTime: Date;
+  endTime: Date;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   parkingFee: number;
@@ -56,13 +56,13 @@ export class ParkingSession {
   @Column({ default: false })
   isPaid: boolean;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   paymentMethod: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   paymentReference: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   paymentTime: Date;
 
   @CreateDateColumn()

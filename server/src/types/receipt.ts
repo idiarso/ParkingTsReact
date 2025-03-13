@@ -1,19 +1,19 @@
 export interface ReceiptFormat {
   showLogo?: boolean;
+  showBarcode?: boolean;
+  showQRCode?: boolean;
+  showVAT?: boolean;
+  currency?: string;
+  dateFormat?: string;
+  timeFormat?: '12h' | '24h';
+  locale?: string;
+  vatRate?: number;
   logoUrl?: string;
   companyName?: string;
   companyAddress?: string;
   companyPhone?: string;
   companyEmail?: string;
-  showBarcode?: boolean;
-  showQRCode?: boolean;
-  showVAT?: boolean;
-  vatNumber?: string;
-  vatRate?: number;
-  currency?: string;
-  dateFormat?: string;
-  timeFormat?: string;
-  locale?: string;
+  companyWebsite?: string;
   theme?: {
     primaryColor?: string;
     secondaryColor?: string;
@@ -24,23 +24,20 @@ export interface ReceiptFormat {
     text?: string;
     showSocialMedia?: boolean;
     socialLinks?: {
-      facebook?: string;
-      twitter?: string;
-      instagram?: string;
+      [key: string]: string;
     };
   };
 }
 
 export interface BatchDownloadOptions {
-  format: 'pdf' | 'excel';
   dateRange?: {
     start: Date;
     end: Date;
   };
   plateNumber?: string;
   vehicleType?: string;
-  status?: 'all' | 'paid' | 'unpaid';
-  sortBy?: 'date' | 'amount' | 'plateNumber';
+  sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  format?: 'pdf' | 'excel';
   receiptFormat?: ReceiptFormat;
 } 

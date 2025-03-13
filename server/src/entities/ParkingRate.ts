@@ -14,6 +14,9 @@ export class ParkingRate {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   hourlyRate: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  overnightSurcharge: number;
+
   @Column({ type: 'int', default: 0 })
   gracePeriodMinutes: number;
 

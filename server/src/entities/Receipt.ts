@@ -1,7 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn
+} from 'typeorm';
 import { ParkingSession } from './ParkingSession';
 
-@Entity('receipts')
+@Entity()
 export class Receipt {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -9,20 +17,20 @@ export class Receipt {
   @Column()
   receiptNumber: string;
 
-  @ManyToOne(() => ParkingSession)
-  @JoinColumn()
-  parkingSession: ParkingSession;
-
   @Column()
   parkingSessionId: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @ManyToOne(() => ParkingSession)
+  @JoinColumn({ name: 'parkingSessionId' })
+  parkingSession: ParkingSession;
+
+  @Column('decimal', { precision: 10, scale: 2 })
   subtotal: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   overnightSurcharge: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   total: number;
 
   @Column()
@@ -31,7 +39,7 @@ export class Receipt {
   @Column()
   paymentReference: string;
 
-  @Column()
+  @Column({ nullable: true })
   customerName: string;
 
   @Column({ nullable: true })
@@ -44,23 +52,26 @@ export class Receipt {
   vehicleType: string;
 
   @Column()
-  plateNumber: string;
+  licensePlate: string;
 
   @Column()
   entryTime: Date;
 
   @Column()
-  exitTime: Date;
+  endTime: Date;
 
   @Column()
   duration: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   baseRate: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   hourlyRate: number;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 } 

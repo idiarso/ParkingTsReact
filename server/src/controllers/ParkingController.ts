@@ -7,27 +7,28 @@ import { logger } from '../utils/logger';
 import { ReceiptController } from './ReceiptController';
 
 export class ParkingController {
+  private parkingRepo = AppDataSource.getRepository(ParkingSession);
+  private rateRepo = AppDataSource.getRepository(ParkingRate);
+  private receiptRepo = AppDataSource.getRepository(Receipt);
+  private receiptController = new ReceiptController();
+
   private calculateParkingFee(
     entryTime: Date,
-    exitTime: Date,
+    endTime: Date,
     rate: ParkingRate,
-    isOvernight: boolean = false
+    isOvernight: boolean
   ): { fee: number; overnightSurcharge: number } {
-    const durationMs = exitTime.getTime() - entryTime.getTime();
-    const durationMinutes = Math.ceil(durationMs / (1000 * 60));
+    const durationHours = (endTime.getTime() - entryTime.getTime()) / (1000 * 60 * 60);
+    let fee = rate.baseRate;
 
-    // Apply grace period
-    if (durationMinutes <= rate.gracePeriodMinutes) {
-      return { fee: 0, overnightSurcharge: 0 };
+    if (durationHours > 1) {
+      const additionalHours = Math.ceil(durationHours - 1);
+      fee += additionalHours * rate.hourlyRate;
     }
 
-    const durationHours = Math.ceil(durationMinutes / 60);
-    const baseFee = rate.baseRate + (durationHours - 1) * rate.hourlyRate;
+    const overnightSurcharge = isOvernight ? rate.overnightSurcharge || 0 : 0;
 
-    // Apply overnight surcharge if applicable
-    const overnightSurcharge = isOvernight ? baseFee * 0.2 : 0;
-
-    return { fee: baseFee, overnightSurcharge };
+    return { fee, overnightSurcharge };
   }
 
   private validatePlateNumber(plateNumber: string): boolean {
@@ -44,86 +45,40 @@ export class ParkingController {
   async recordEntry(req: Request, res: Response) {
     try {
       const {
-        plateNumber,
+        licensePlate,
         vehicleType,
-        driverName,
-        driverPhone,
-        notes,
-        parkingSpot,
         entryGateNumber,
-        entryPhotoUrl
+        entryPhotoUrl,
+        driverName,
+        driverPhone
       } = req.body;
 
-      // Enhanced validation
-      if (!plateNumber || !vehicleType) {
-        return res.status(400).json({
-          success: false,
-          message: 'Plate number and vehicle type are required'
-        });
-      }
-
-      if (!this.validatePlateNumber(plateNumber)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid plate number format'
-        });
-      }
-
-      if (driverPhone && !this.validatePhoneNumber(driverPhone)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid phone number format'
-        });
-      }
-
-      // Validate vehicle type against available rates
-      const rateRepo = AppDataSource.getRepository(ParkingRate);
-      const validRate = await rateRepo.findOne({
-        where: {
-          vehicleType,
-          isActive: true
-        }
-      });
-
-      if (!validRate) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid vehicle type'
-        });
-      }
-
       // Check if vehicle is already parked
-      const parkingRepo = AppDataSource.getRepository(ParkingSession);
-      const existingSession = await parkingRepo.findOne({
+      const activeSession = await this.parkingRepo.findOne({
         where: {
-          plateNumber,
+          licensePlate,
           isCompleted: false
         }
       });
 
-      if (existingSession) {
+      if (activeSession) {
         return res.status(400).json({
           success: false,
           message: 'Vehicle is already parked'
         });
       }
 
-      // Create new parking session with additional details
-      const session = parkingRepo.create({
-        plateNumber: plateNumber.toUpperCase(),
+      // Create new parking session
+      const session = this.parkingRepo.create({
+        licensePlate: licensePlate.toUpperCase(),
         vehicleType,
-        driverName,
-        driverPhone,
-        notes,
-        parkingSpot,
-        entryGateNumber,
         entryPhotoUrl,
         entryTime: new Date()
       });
 
-      await parkingRepo.save(session);
+      await this.parkingRepo.save(session);
 
-      logger.info(`Vehicle entered: ${plateNumber}, Spot: ${parkingSpot}`);
+      logger.info(`Vehicle entered: ${licensePlate}, Type: ${vehicleType}`);
 
       return res.status(201).json({
         success: true,
@@ -141,7 +96,7 @@ export class ParkingController {
   async processExit(req: Request, res: Response) {
     try {
       const {
-        plateNumber,
+        licensePlate,
         exitGateNumber,
         exitPhotoUrl,
         paymentMethod,
@@ -149,10 +104,9 @@ export class ParkingController {
         customerEmail
       } = req.body;
 
-      const parkingRepo = AppDataSource.getRepository(ParkingSession);
-      const session = await parkingRepo.findOne({
+      const session = await this.parkingRepo.findOne({
         where: {
-          plateNumber,
+          licensePlate,
           isCompleted: false
         }
       });
@@ -164,8 +118,7 @@ export class ParkingController {
         });
       }
 
-      const rateRepo = AppDataSource.getRepository(ParkingRate);
-      const rate = await rateRepo.findOne({
+      const rate = await this.rateRepo.findOne({
         where: {
           vehicleType: session.vehicleType,
           isActive: true
@@ -179,19 +132,19 @@ export class ParkingController {
         });
       }
 
-      const exitTime = new Date();
-      const durationHours = (exitTime.getTime() - session.entryTime.getTime()) / (1000 * 60 * 60);
+      const endTime = new Date();
+      const durationHours = (endTime.getTime() - session.entryTime.getTime()) / (1000 * 60 * 60);
       const isOvernight = durationHours >= 24;
 
       const { fee, overnightSurcharge } = this.calculateParkingFee(
         session.entryTime,
-        exitTime,
+        endTime,
         rate,
         isOvernight
       );
 
       // Update session with exit details
-      session.exitTime = exitTime;
+      session.endTime = endTime;
       session.exitGateNumber = exitGateNumber;
       session.exitPhotoUrl = exitPhotoUrl;
       session.parkingFee = fee;
@@ -203,35 +156,31 @@ export class ParkingController {
       session.paymentReference = paymentReference;
       session.paymentTime = new Date();
 
-      await parkingRepo.save(session);
+      await this.parkingRepo.save(session);
 
       // Generate receipt
-      const receiptRepo = AppDataSource.getRepository(Receipt);
-      const receiptController = new ReceiptController();
-      const receipt = await receiptRepo.create({
-        receiptNumber: receiptController['generateReceiptNumber'](),
-        parkingSession: session,
+      const receipt = this.receiptRepo.create({
+        receiptNumber: this.receiptController.generateReceiptNumber(),
         parkingSessionId: session.id,
+        parkingSession: session,
         subtotal: fee,
-        overnightSurcharge: overnightSurcharge,
+        overnightSurcharge,
         total: fee + overnightSurcharge,
         paymentMethod,
         paymentReference,
-        customerName: session.driverName,
-        customerPhone: session.driverPhone,
         customerEmail,
         vehicleType: session.vehicleType,
-        plateNumber: session.plateNumber,
+        licensePlate: session.licensePlate,
         entryTime: session.entryTime,
-        exitTime: session.exitTime,
-        duration: receiptController['calculateDuration'](session.entryTime, exitTime),
+        endTime: session.endTime,
+        duration: this.receiptController.calculateDuration(session.entryTime, endTime),
         baseRate: rate.baseRate,
         hourlyRate: rate.hourlyRate
       });
 
-      await receiptRepo.save(receipt);
+      await this.receiptRepo.save(receipt);
 
-      logger.info(`Vehicle exited: ${plateNumber}, Fee: ${fee}, Surcharge: ${overnightSurcharge}`);
+      logger.info(`Vehicle exited: ${licensePlate}, Fee: ${fee}, Surcharge: ${overnightSurcharge}`);
 
       return res.status(200).json({
         success: true,
@@ -251,12 +200,12 @@ export class ParkingController {
 
   async getSessionDetails(req: Request, res: Response) {
     try {
-      const { plateNumber } = req.params;
+      const { licensePlate } = req.params;
 
       const parkingRepo = AppDataSource.getRepository(ParkingSession);
       const session = await parkingRepo.findOne({
         where: {
-          plateNumber,
+          licensePlate,
           isCompleted: false
         }
       });

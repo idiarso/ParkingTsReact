@@ -10,13 +10,16 @@ import { ReceiptFormat, BatchDownloadOptions } from '../types/receipt';
 import archiver from 'archiver';
 
 export class ReceiptController {
-  private generateReceiptNumber(): string {
+  private receiptRepo = AppDataSource.getRepository(Receipt);
+  private parkingRepo = AppDataSource.getRepository(ParkingSession);
+
+  generateReceiptNumber(): string {
     const timestamp = Date.now().toString();
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `RCP${timestamp}${random}`;
   }
 
-  private calculateDuration(entryTime: Date, exitTime: Date): string {
+  calculateDuration(entryTime: Date, exitTime: Date): string {
     const durationMs = exitTime.getTime() - entryTime.getTime();
     const hours = Math.floor(durationMs / (1000 * 60 * 60));
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -89,10 +92,10 @@ export class ReceiptController {
         customerPhone: session.driverPhone,
         customerEmail,
         vehicleType: session.vehicleType,
-        plateNumber: session.plateNumber,
+        licensePlate: session.licensePlate,
         entryTime: session.entryTime,
-        exitTime: session.exitTime,
-        duration: this.calculateDuration(session.entryTime, session.exitTime),
+        endTime: session.endTime,
+        duration: this.calculateDuration(session.entryTime, session.endTime),
         baseRate: rate.baseRate,
         hourlyRate: rate.hourlyRate
       });
@@ -188,11 +191,9 @@ export class ReceiptController {
 
   async getReceipt(req: Request, res: Response) {
     try {
-      const { receiptNumber } = req.params;
-      const receiptRepo = AppDataSource.getRepository(Receipt);
-
-      const receipt = await receiptRepo.findOne({
-        where: { receiptNumber },
+      const { id } = req.params;
+      const receipt = await this.receiptRepo.findOne({
+        where: { id },
         relations: ['parkingSession']
       });
 
@@ -208,7 +209,57 @@ export class ReceiptController {
         data: receipt
       });
     } catch (error) {
-      logger.error('Error retrieving receipt:', error);
+      logger.error('Error getting receipt:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  async getReceiptBySession(req: Request, res: Response) {
+    try {
+      const { sessionId } = req.params;
+      const receipt = await this.receiptRepo.findOne({
+        where: { parkingSessionId: sessionId },
+        relations: ['parkingSession']
+      });
+
+      if (!receipt) {
+        return res.status(404).json({
+          success: false,
+          message: 'Receipt not found'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: receipt
+      });
+    } catch (error) {
+      logger.error('Error getting receipt by session:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  async getVehicleHistory(req: Request, res: Response) {
+    try {
+      const { licensePlate } = req.params;
+      const sessions = await this.parkingRepo.find({
+        where: { licensePlate },
+        relations: ['receipt'],
+        order: { entryTime: 'DESC' }
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: sessions
+      });
+    } catch (error) {
+      logger.error('Error getting vehicle history:', error);
       return res.status(500).json({
         success: false,
         message: 'Internal server error'
@@ -218,11 +269,11 @@ export class ReceiptController {
 
   async getUserReceipts(req: Request, res: Response) {
     try {
-      const { plateNumber, limit = 10, offset = 0 } = req.query;
+      const { licensePlate, limit = 10, offset = 0 } = req.query;
       const receiptRepo = AppDataSource.getRepository(Receipt);
 
       const [receipts, total] = await receiptRepo.findAndCount({
-        where: { plateNumber: plateNumber as string },
+        where: { licensePlate: licensePlate as string },
         order: { createdAt: 'DESC' },
         take: Math.min(Number(limit), 50),
         skip: Number(offset)

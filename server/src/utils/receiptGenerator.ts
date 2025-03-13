@@ -5,6 +5,22 @@ import { ReceiptFormat } from '../types/receipt';
 import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 import { Canvas } from 'canvas';
+import { format } from 'date-fns';
+import { enUS, id } from 'date-fns/locale';
+
+interface ReceiptGeneratorOptions {
+  dateFormat?: string;
+  locale?: string;
+  currency?: string;
+  logo?: string;
+  companyName?: string;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  companyWebsite?: string;
+  showVAT?: boolean;
+  vatRate?: number;
+}
 
 export class ReceiptGenerator {
   private static defaultFormat: ReceiptFormat = {
@@ -28,6 +44,21 @@ export class ReceiptGenerator {
     }
   };
 
+  private defaultOptions: ReceiptGeneratorOptions = {
+    dateFormat: 'dd MMM yyyy HH:mm:ss',
+    locale: 'en-US',
+    currency: 'IDR',
+    companyName: 'Parking System',
+    companyAddress: 'Jl. Parking No. 1',
+    companyPhone: '(021) 123-4567',
+    companyEmail: 'info@parking.com',
+    companyWebsite: 'www.parking.com'
+  };
+
+  constructor(private options: ReceiptGeneratorOptions = {}) {
+    this.options = { ...this.defaultOptions, ...options };
+  }
+
   private static async generateQRCode(data: string): Promise<Buffer> {
     return QRCode.toBuffer(data);
   }
@@ -43,21 +74,16 @@ export class ReceiptGenerator {
     return canvas.toBuffer();
   }
 
-  private static formatDate(date: Date, _format: string, locale: string): string {
-    return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).format(date);
+  private static formatDate(date: Date, dateFormat: string, locale: string): string {
+    return format(date, dateFormat, {
+      locale: locale === 'id' ? id : enUS
+    });
   }
 
-  private static formatCurrency(amount: number, currency: string, locale: string): string {
+  private static formatCurrency(amount: number, locale: string = 'en-US', currency: string = 'USD'): string {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency
+      currency: currency
     }).format(amount);
   }
 
@@ -114,32 +140,32 @@ export class ReceiptGenerator {
         // Vehicle information
         doc.text('Vehicle Information');
         doc.text(`Type: ${receipt.vehicleType}`);
-        doc.text(`Plate Number: ${receipt.plateNumber}`);
+        doc.text(`License Plate: ${receipt.licensePlate}`);
         doc.moveDown();
 
         // Parking details
         doc.text('Parking Details');
         doc.text(`Entry Time: ${this.formatDate(receipt.entryTime, options.dateFormat!, options.locale!)}`);
-        doc.text(`Exit Time: ${this.formatDate(receipt.exitTime, options.dateFormat!, options.locale!)}`);
+        doc.text(`End Time: ${this.formatDate(receipt.endTime, options.dateFormat!, options.locale!)}`);
         doc.text(`Duration: ${receipt.duration}`);
         doc.moveDown();
 
         // Payment details
         doc.text('Payment Details');
-        doc.text(`Base Rate: ${this.formatCurrency(receipt.baseRate, options.currency!, options.locale!)}`);
-        doc.text(`Hourly Rate: ${this.formatCurrency(receipt.hourlyRate, options.currency!, options.locale!)}`);
-        doc.text(`Subtotal: ${this.formatCurrency(receipt.subtotal, options.currency!, options.locale!)}`);
+        doc.text(`Base Rate: ${this.formatCurrency(receipt.baseRate, options.locale, options.currency)}`);
+        doc.text(`Hourly Rate: ${this.formatCurrency(receipt.hourlyRate, options.locale, options.currency)}`);
+        doc.text(`Subtotal: ${this.formatCurrency(receipt.subtotal, options.locale, options.currency)}`);
         
         if (receipt.overnightSurcharge > 0) {
-          doc.text(`Overnight Surcharge: ${this.formatCurrency(receipt.overnightSurcharge, options.currency!, options.locale!)}`);
+          doc.text(`Overnight Surcharge: ${this.formatCurrency(receipt.overnightSurcharge, options.locale, options.currency)}`);
         }
 
         if (options.showVAT && options.vatRate) {
           const vat = receipt.total * (options.vatRate / 100);
-          doc.text(`VAT (${options.vatRate}%): ${this.formatCurrency(vat, options.currency!, options.locale!)}`);
+          doc.text(`VAT (${options.vatRate}%): ${this.formatCurrency(vat, options.locale, options.currency)}`);
         }
 
-        doc.text(`Total: ${this.formatCurrency(receipt.total, options.currency!, options.locale!)}`);
+        doc.text(`Total: ${this.formatCurrency(receipt.total, options.locale, options.currency)}`);
         doc.text(`Payment Method: ${receipt.paymentMethod}`);
         doc.text(`Reference: ${receipt.paymentReference}`);
 
@@ -202,22 +228,22 @@ export class ReceiptGenerator {
         [''],
         ['Vehicle Information'],
         ['Type', receipt.vehicleType],
-        ['Plate Number', receipt.plateNumber],
+        ['License Plate', receipt.licensePlate],
         [''],
         ['Parking Details'],
         ['Entry Time', this.formatDate(receipt.entryTime, options.dateFormat!, options.locale!)],
-        ['Exit Time', this.formatDate(receipt.exitTime, options.dateFormat!, options.locale!)],
+        ['End Time', this.formatDate(receipt.endTime, options.dateFormat!, options.locale!)],
         ['Duration', receipt.duration],
         [''],
         ['Payment Details'],
-        ['Base Rate', this.formatCurrency(receipt.baseRate, options.currency!, options.locale!)],
-        ['Hourly Rate', this.formatCurrency(receipt.hourlyRate, options.currency!, options.locale!)],
-        ['Subtotal', this.formatCurrency(receipt.subtotal, options.currency!, options.locale!)],
-        ['Overnight Surcharge', this.formatCurrency(receipt.overnightSurcharge, options.currency!, options.locale!)],
+        ['Base Rate', this.formatCurrency(receipt.baseRate, options.locale, options.currency)],
+        ['Hourly Rate', this.formatCurrency(receipt.hourlyRate, options.locale, options.currency)],
+        ['Subtotal', this.formatCurrency(receipt.subtotal, options.locale, options.currency)],
+        ['Overnight Surcharge', this.formatCurrency(receipt.overnightSurcharge, options.locale, options.currency)],
         options.showVAT && options.vatRate ? 
-          ['VAT', this.formatCurrency(receipt.total * (options.vatRate / 100), options.currency!, options.locale!)] : 
+          ['VAT', this.formatCurrency(receipt.total * (options.vatRate / 100), options.locale, options.currency)]: 
           [],
-        ['Total', this.formatCurrency(receipt.total, options.currency!, options.locale!)],
+        ['Total', this.formatCurrency(receipt.total, options.locale, options.currency)],
         ['Payment Method', receipt.paymentMethod],
         ['Reference', receipt.paymentReference]
       ].filter(row => row.length > 0)
@@ -227,5 +253,93 @@ export class ReceiptGenerator {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Receipt');
 
     return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  generateHTML(receipt: Receipt): string {
+    const options = ReceiptGenerator.defaultFormat;
+    const rows = [
+      ['Receipt No', receipt.receiptNumber],
+      ['Date', ReceiptGenerator.formatDate(receipt.createdAt, options.dateFormat!, options.locale!)],
+      ['Email', receipt.customerEmail || 'N/A'],
+      ['Vehicle Type', receipt.vehicleType],
+      ['License Plate', receipt.licensePlate],
+      ['Entry Time', ReceiptGenerator.formatDate(receipt.entryTime, options.dateFormat!, options.locale!)],
+      ['End Time', ReceiptGenerator.formatDate(receipt.endTime, options.dateFormat!, options.locale!)],
+      ['Duration', receipt.duration],
+      ['Base Rate', ReceiptGenerator.formatCurrency(receipt.baseRate, options.locale, options.currency)],
+      ['Hourly Rate', ReceiptGenerator.formatCurrency(receipt.hourlyRate, options.locale, options.currency)],
+      ['Subtotal', ReceiptGenerator.formatCurrency(receipt.subtotal, options.locale, options.currency)],
+      ['Overnight Surcharge', ReceiptGenerator.formatCurrency(receipt.overnightSurcharge, options.locale, options.currency)],
+      ['Total', ReceiptGenerator.formatCurrency(receipt.total, options.locale, options.currency)],
+      ['Payment Method', receipt.paymentMethod],
+      ['Payment Reference', receipt.paymentReference]
+    ];
+
+    const tableRows = rows
+      .map(([label, value]) => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${label}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${value}</td>
+        </tr>
+      `)
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Parking Receipt</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .company-name {
+              font-size: 24px;
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+            .receipt-title {
+              font-size: 20px;
+              font-weight: bold;
+              text-align: center;
+              margin: 20px 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            th, td {
+              text-align: left;
+              padding: 8px;
+              border-bottom: 1px solid #ddd;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="company-name">${options.companyName}</div>
+            <div>${options.companyAddress || ''}</div>
+            <div>${options.companyPhone || ''}</div>
+            <div>${options.companyEmail || ''}</div>
+            <div>${options.companyWebsite || ''}</div>
+          </div>
+          <div class="receipt-title">PARKING RECEIPT</div>
+          <table>
+            ${tableRows}
+          </table>
+        </body>
+      </html>
+    `;
   }
 } 
