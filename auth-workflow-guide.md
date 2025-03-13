@@ -2,6 +2,142 @@
 
 This guide provides step-by-step instructions for operating the parking system, including authentication procedures and workflows for vehicle entry and exit.
 
+## Instalasi dan Persiapan Sistem
+
+### Persyaratan Sistem
+
+#### Untuk Semua Komputer Client
+- Sistem Operasi: Windows 10/11
+- Node.js v14 atau lebih tinggi
+- Git
+- Memori RAM minimal 4GB
+- Koneksi jaringan LAN
+
+#### Khusus Server & Admin
+- PostgreSQL 12 atau lebih tinggi
+- Penyimpanan minimal 100GB
+- Prosesor i5 generasi ke-8 atau setara
+
+#### Khusus Gate-In
+- Kamera webcam atau IP camera
+- Penghubung relay untuk pengendali palang
+- Koneksi untuk lampu indikator
+
+#### Khusus Gate-Out
+- Pemindai barcode/QR code
+- Kamera verifikasi
+- Printer termal untuk struk
+- Penghubung relay untuk pengendali palang
+
+### Persiapan Komputer Client Baru
+
+Jika komputer client belum memiliki bahan-bahan yang diperlukan, ikuti langkah-langkah berikut:
+
+1. **Instalasi Sistem Operasi**
+   - Pastikan Windows 10/11 terinstal dan terupdate
+   - Aktifkan Windows dengan lisensi yang sah
+
+2. **Instalasi Software Dasar**
+   - Unduh dan instal Node.js dari https://nodejs.org/ (pilih versi LTS)
+   - Unduh dan instal Git dari https://git-scm.com/
+   - Untuk server, unduh dan instal PostgreSQL dari https://www.postgresql.org/
+
+3. **Konfigurasi Jaringan**
+   - Atur IP statis untuk setiap komputer:
+     - Server & Admin: 192.168.1.10 (contoh)
+     - Gate-In: 192.168.1.20 (contoh)
+     - Gate-Out: 192.168.1.30 (contoh)
+   - Pastikan semua komputer terhubung dalam jaringan yang sama
+   - Buka port yang diperlukan di firewall:
+     - 5000: API Server
+     - 8080: WebSocket Server
+     - 3000-3002: UI Aplikasi
+
+4. **Persiapan Hardware**
+   - Pasang dan konfigurasikan kamera di Gate-In
+   - Pasang dan konfigurasikan pemindai barcode di Gate-Out
+   - Pasang dan konfigurasikan printer termal di Gate-Out
+   - Siapkan koneksi ke pengendali palang di Gate-In dan Gate-Out
+
+### Instalasi Aplikasi
+
+#### Menggunakan Installer
+
+1. **Unduh Installer**
+   - Unduh paket installer yang sesuai:
+     - `parking-system-admin.zip` untuk Server & Admin
+     - `parking-system-gate-in.zip` untuk Gate-In
+     - `parking-system-gate-out.zip` untuk Gate-Out
+
+2. **Jalankan Installer**
+   - Ekstrak file zip
+   - Jalankan file `install.bat` sebagai Administrator
+   - Ikuti petunjuk yang muncul di layar
+   - Masukkan informasi konfigurasi yang diminta (IP server, kredensial database, dll.)
+
+3. **Verifikasi Instalasi**
+   - Pastikan semua dependensi terinstal dengan benar
+   - Periksa file konfigurasi (.env) di setiap komponen
+   - Jalankan aplikasi menggunakan script startup yang dibuat oleh installer
+
+#### Instalasi Manual
+
+Jika installer tidak tersedia, ikuti langkah-langkah berikut:
+
+1. **Clone Repository**
+   ```
+   git clone https://github.com/idiarso/ParkingTsReact.git
+   cd ParkingTsReact
+   ```
+
+2. **Instalasi Server & Admin**
+   ```
+   cd server
+   npm install
+   # Buat file .env dengan konfigurasi yang sesuai
+   cd ../admin
+   npm install
+   # Buat file .env dengan konfigurasi yang sesuai
+   ```
+
+3. **Instalasi Gate-In**
+   ```
+   cd gate-in
+   npm install
+   # Buat file .env dengan konfigurasi yang sesuai
+   ```
+
+4. **Instalasi Gate-Out**
+   ```
+   cd gate-out
+   npm install
+   # Buat file .env dengan konfigurasi yang sesuai
+   ```
+
+### Troubleshooting Instalasi
+
+#### Masalah Node.js
+- **Gejala**: Error "node not recognized as an internal or external command"
+- **Solusi**: Pastikan Node.js terinstal dengan benar dan variabel PATH diatur dengan benar
+
+#### Masalah Git
+- **Gejala**: Error "git not recognized as an internal or external command"
+- **Solusi**: Pastikan Git terinstal dengan benar dan variabel PATH diatur dengan benar
+
+#### Masalah PostgreSQL
+- **Gejala**: Error koneksi database
+- **Solusi**: 
+  - Verifikasi PostgreSQL berjalan (cek di Services)
+  - Pastikan kredensial database benar di file .env
+  - Pastikan database sudah dibuat
+
+#### Masalah Dependensi
+- **Gejala**: Error saat npm install
+- **Solusi**:
+  - Hapus folder node_modules dan coba lagi
+  - Pastikan koneksi internet stabil
+  - Coba dengan `npm install --legacy-peer-deps`
+
 ## Authentication
 
 ### Gate-In Station Login
