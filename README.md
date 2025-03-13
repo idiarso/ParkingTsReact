@@ -57,6 +57,10 @@ cd parking-system
 2. Install dependencies for each component:
 
 ```bash
+# Install all dependencies at once
+npm run install-all
+
+# Or install individually:
 # Server
 cd server
 npm install
@@ -197,6 +201,15 @@ Content-Type: application/json
 
 ## Running the System
 
+### Using Start Script
+
+1. The easiest way to start all services:
+```bash
+npm run start-all
+```
+
+### Manual Startup
+
 1. Start the server:
 ```bash
 cd server
@@ -220,6 +233,51 @@ npm start
 cd gate-out
 npm start
 ```
+
+## Development
+
+### Available Scripts
+
+- `npm run install-all` - Install dependencies for all components
+- `npm run start-all` - Start all services
+- `npm run build` - Build all components
+- `npm run test` - Run tests across all components
+- `npm run lint` - Run linting across all components
+
+### Environment Setup
+
+For development, you can use the included `.env.example` files in each component directory as templates for your environment configuration.
+
+### Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Troubleshooting
+
+Common issues and their solutions:
+
+1. Database Connection Issues
+   - Verify PostgreSQL is running
+   - Check database credentials in `.env`
+   - Ensure database exists
+
+2. Hardware Connection Issues
+   - Verify COM port settings
+   - Check hardware connections
+   - Ensure proper drivers are installed
+
+3. Build Errors
+   - Clear node_modules and reinstall dependencies
+   - Update Node.js to latest LTS version
+   - Check for TypeScript errors
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the development team.
 
 ## License
 
