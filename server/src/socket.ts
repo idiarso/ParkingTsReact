@@ -10,27 +10,32 @@ export const initializeSocket = (server: HttpServer) => {
     }
   });
 
-  io.use((socket, next) => {
-    try {
-      const token = socket.handshake.auth.token;
+  // Skip token authentication in development mode
+  if (process.env.NODE_ENV !== 'development') {
+    io.use((socket, next) => {
+      try {
+        const token = socket.handshake.auth.token;
 
-      if (!token) {
-        throw new Error('Authentication required');
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET || 'default_secret'
+        ) as { userId: string; role: string };
+
+        socket.data.userId = decoded.userId;
+        socket.data.role = decoded.role;
+
+        next();
+      } catch (error) {
+        next(new Error('Invalid or expired token'));
       }
-
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || 'default_secret'
-      ) as { userId: string; role: string };
-
-      socket.data.userId = decoded.userId;
-      socket.data.role = decoded.role;
-
-      next();
-    } catch (error) {
-      next(new Error('Invalid or expired token'));
-    }
-  });
+    });
+  } else {
+    console.log('Socket authentication disabled in development mode');
+  }
 
   // Handle client connections
   io.on('connection', (socket) => {
