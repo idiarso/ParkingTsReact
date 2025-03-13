@@ -1,11 +1,10 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import {
   Box,
   Button,
   Paper,
   Typography,
-  CircularProgress,
   Alert,
   LinearProgress,
   Switch,
@@ -14,12 +13,18 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  IconButton
+  Grid
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { PhotoCamera, Cameraswitch, SettingsBackupRestore } from '@mui/icons-material';
+import { PhotoCamera, Videocam, VideocamOff, SettingsBackupRestore } from '@mui/icons-material';
 import { detectLicensePlate } from '../services/ocr';
-import { cameraConfigService, IPCameraConfig, DEFAULT_WEBCAM } from '../services/cameraConfig';
+import { cameraConfigService, type IPCameraConfig } from '../services/cameraConfig';
+
+interface OCRResult {
+  text: string;
+  confidence: number;
+  isValid: boolean;
+}
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -32,6 +37,10 @@ const WebcamContainer = styled(Box)({
   width: '100%',
   maxWidth: '640px',
   margin: '0 auto',
+  aspectRatio: '4/3',
+  backgroundColor: '#000',
+  overflow: 'hidden',
+  borderRadius: '4px',
 });
 
 const ControlsContainer = styled(Box)(({ theme }) => ({
@@ -64,6 +73,37 @@ const GuideOverlay = styled(Box)(({ theme }) => ({
   },
 }));
 
+const LiveIndicator = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 8,
+  left: 8,
+  display: 'flex',
+  alignItems: 'center',
+  padding: '4px 8px',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  borderRadius: '4px',
+  color: '#fff',
+  gap: '4px',
+  '& .dot': {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    backgroundColor: theme.palette.error.main,
+    animation: 'pulse 1.5s infinite',
+  },
+  '@keyframes pulse': {
+    '0%': {
+      opacity: 1,
+    },
+    '50%': {
+      opacity: 0.4,
+    },
+    '100%': {
+      opacity: 1,
+    },
+  },
+}));
+
 // Random plate numbers for simulation
 const SAMPLE_PLATES = [
   'B1234CD', 'D5678EF', 'F9012GH', 'A2468BD', 'H1357IJ',
@@ -89,23 +129,50 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
   const [confidence, setConfidence] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [autoScan, setAutoScan] = useState(true); // Enable auto scanning by default
+  const [autoScan, setAutoScan] = useState(autoDetect);
   const [lastDetectionTime, setLastDetectionTime] = useState(0);
   const [licensePlate, setLicensePlate] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(true);
   const scanIntervalRef = useRef<NodeJS.Timeout>();
   const webcamRef = useRef<Webcam>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedCamera, setSelectedCamera] = useState<string>(initialCamera);
   const [availableCameras, setAvailableCameras] = useState<IPCameraConfig[]>([]);
   const [ipCameraUrl, setIpCameraUrl] = useState<string>('');
-  const [useFallbackPlayer, setUseFallbackPlayer] = useState<boolean>(false);
+
+  const processImage = async (imageSrc: string): Promise<boolean> => {
+    if (!isCameraActive) return false;
+    
+    setIsProcessing(true);
+    try {
+      const result = await detectLicensePlate(imageSrc);
+      
+      if (result.confidence >= 75 && result.isValid) {
+        setLicensePlate(result.text);
+        setConfidence(result.confidence);
+        setImage(imageSrc);
+        setLastDetectionTime(Date.now());
+        
+        if (onPlateDetected) {
+          onPlateDetected(result.text, result.confidence, imageSrc);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error processing image:', error);
+      setError('Failed to process image');
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Load camera configurations
   useEffect(() => {
     const ipCameras = cameraConfigService.getConfigs().filter(c => c.enabled);
     setAvailableCameras(ipCameras);
     
-    // If an IP camera is selected, set its URL
     if (selectedCamera !== 'local') {
       const selectedConfig = ipCameras.find(c => c.id === selectedCamera);
       if (selectedConfig) {
@@ -123,6 +190,11 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         setDevices(videoDevices);
+        
+        // Select the first available device if none is selected
+        if (videoDevices.length > 0 && !selectedDeviceId) {
+          setSelectedDeviceId(videoDevices[0].deviceId);
+        }
       } catch (err) {
         console.error('Error getting media devices:', err);
         setError('Failed to access camera devices. Please check permissions.');
@@ -134,27 +206,15 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
 
   // Set up auto-scanning
   useEffect(() => {
-    if (autoScan && autoDetect) {
+    if (autoScan && isCameraActive) {
       scanIntervalRef.current = setInterval(async () => {
         if (!isProcessing && Date.now() - lastDetectionTime > 2000) {
           const imageSrc = webcamRef.current?.getScreenshot();
           if (imageSrc) {
-            setIsProcessing(true);
-            const success = await processImage(imageSrc);
-            setIsProcessing(false);
-             
-            // If license plate detected successfully, notify the parent component
-            if (success) {
-              // This will automatically process the entry
-              console.log('License plate detected and processed automatically');
-            }
+            await processImage(imageSrc);
           }
         }
       }, 1000);
-    } else {
-      if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current);
-      }
     }
 
     return () => {
@@ -162,60 +222,22 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
         clearInterval(scanIntervalRef.current);
       }
     };
-  }, [autoScan, isProcessing, lastDetectionTime, autoDetect]);
-
-  // Take a screenshot from the webcam
-  const capture = useCallback(() => {
-    const imageSrc = webcamRef.current?.getScreenshot();
-    if (imageSrc) {
-      setImage(imageSrc);
-      processImage(imageSrc);
-    }
-  }, []);
-
-  // Mock license plate recognition
-  // In a real implementation, you would call an ALPR API or use a local library
-  const processImage = async (imageSrc: string): Promise<boolean> => {
-    setIsProcessing(true);
-    setLicensePlate(null);
-    setConfidence(null);
-    
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demonstration purposes, generate random plate
-      // In a real app, you would call an ALPR API or TensorFlow model
-      const randomPlate = SAMPLE_PLATES[Math.floor(Math.random() * SAMPLE_PLATES.length)];
-      const randomConfidence = CONFIDENCE_LEVELS[Math.floor(Math.random() * CONFIDENCE_LEVELS.length)];
-      
-      setLicensePlate(randomPlate);
-      setConfidence(randomConfidence);
-      setImage(imageSrc);
-      setLastDetectionTime(Date.now());
-      
-      // Notify parent component if confidence is high enough
-      if (randomConfidence >= 75 && onPlateDetected) {
-        onPlateDetected(randomPlate, randomConfidence, imageSrc);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error processing image:', error);
-      setError('Failed to process image');
-      return false;
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  }, [autoScan, isProcessing, lastDetectionTime, isCameraActive, processImage]);
 
   const handleDeviceChange = (deviceId: string) => {
     setSelectedDeviceId(deviceId);
+    resetCapture();
   };
 
   const toggleAutoScan = () => {
     setAutoScan(prev => !prev);
+  };
+
+  const toggleCamera = () => {
+    setIsCameraActive(prev => !prev);
+    if (!isCameraActive) {
+      resetCapture();
+    }
   };
 
   const resetCapture = () => {
@@ -225,19 +247,13 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
     setError(null);
   };
 
-  // IP camera media constraints
   const getVideoConstraints = () => {
-    if (selectedCamera === 'local') {
-      // Use the first available device or the default
-      const deviceId = devices.length > 0 ? devices[0].deviceId : undefined;
-      return {
-        width: 1280,
-        height: 720,
-        deviceId,
-        facingMode: "environment"
-      };
-    }
-    return false; // Not used for IP cameras
+    return {
+      width: 1280,
+      height: 720,
+      deviceId: selectedDeviceId,
+      facingMode: "environment"
+    };
   };
 
   return (
@@ -248,254 +264,134 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
         </Alert>
       )}
       
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Box sx={{ position: 'relative', mb: 2 }}>
-          {/* Camera feed */}
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              overflow: 'hidden', 
-              position: 'relative',
-              width: '100%',
-              maxWidth: '100%',
-              height: 'auto',
-              aspectRatio: '4/3',
-            }}
-          >
-            {selectedCamera === 'local' ? (
-              <Webcam
-                audio={false}
-                ref={webcamRef}
-                videoConstraints={getVideoConstraints()}
-                screenshotFormat="image/jpeg"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : ipCameraUrl && !useFallbackPlayer ? (
-              // IP Camera stream - using img for MJPEG or http
-              <Box sx={{ width: '100%', minHeight: '300px', backgroundColor: '#000', position: 'relative' }}>
-                {(() => {
-                  const selectedConfig = availableCameras.find(c => c.id === selectedCamera);
-                  if (selectedConfig?.type === 'mjpeg' || selectedConfig?.type === 'http') {
-                    return (
-                      <img 
-                        src={`${ipCameraUrl}${ipCameraUrl.includes('?') ? '&' : '?'}t=${Date.now()}`}
-                        alt="IP Camera Feed" 
-                        style={{ width: '100%', height: 'auto' }}
-                        onError={() => setUseFallbackPlayer(true)}
-                      />
-                    );
-                  } else if (selectedConfig?.type === 'rtsp') {
-                    // For RTSP, we need a player that supports it (not directly supported in browser)
-                    return (
-                      <Box sx={{ p: 2, textAlign: 'center' }}>
-                        <Typography>
-                          RTSP streams require a specialized player. 
-                        </Typography>
-                        <Button 
-                          variant="outlined" 
-                          onClick={() => setUseFallbackPlayer(true)}
-                          sx={{ mt: 1 }}
-                        >
-                          Use Fallback Player
-                        </Button>
-                      </Box>
-                    );
-                  }
-                  return (
-                    <Typography sx={{ p: 2, color: 'white' }}>
-                      Unsupported camera type
-                    </Typography>
-                  );
-                })()}
-              </Box>
-            ) : (
-              // Fallback for unsupported IP camera types
-              <Box sx={{ 
-                width: '100%', 
-                minHeight: '300px', 
-                backgroundColor: '#222', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                flexDirection: 'column'
-              }}>
-                <Typography variant="body1" color="white" gutterBottom>
-                  Cannot display this camera feed directly in browser.
-                </Typography>
-                <Typography variant="caption" color="gray">
-                  IP camera feeds may require server-side processing or special plugins.
-                </Typography>
-                <Button 
-                  variant="outlined" 
-                  color="primary" 
-                  sx={{ mt: 2 }}
-                  onClick={() => {
-                    // Capture still image for processing
-                    const timestamp = Date.now();
-                    const imageUrl = `${ipCameraUrl}${ipCameraUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
-                    
-                    // Create an image element to load the snapshot
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = () => {
-                      // Create a canvas to get the image data
-                      const canvas = document.createElement('canvas');
-                      canvas.width = img.width;
-                      canvas.height = img.height;
-                      const ctx = canvas.getContext('2d');
-                      if (ctx) {
-                        ctx.drawImage(img, 0, 0);
-                        const dataUrl = canvas.toDataURL('image/jpeg');
-                        setImage(dataUrl);
-                        processImage(dataUrl);
-                      }
-                    };
-                    img.onerror = () => {
-                      setError('Failed to load image from camera');
-                    };
-                    img.src = imageUrl;
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <WebcamContainer>
+            {isCameraActive && (
+              <>
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  videoConstraints={getVideoConstraints()}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
                   }}
-                >
-                  Capture Snapshot
-                </Button>
-              </Box>
+                />
+                <LiveIndicator>
+                  <div className="dot" />
+                  <Typography variant="caption">LIVE</Typography>
+                </LiveIndicator>
+                <GuideOverlay />
+              </>
             )}
-            
-            {/* Processing indicator */}
-            {isProcessing && (
-              <Box sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              }}>
-                <CircularProgress color="primary" />
-              </Box>
-            )}
-          </Paper>
-          
-          {/* Captured image */}
-          {image && !autoDetect && (
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                mt: 2,
-                overflow: 'hidden',
-                width: '100%',
-                maxWidth: '100%',
-                height: 'auto',
-                aspectRatio: '4/3',
-                position: 'relative'
-              }}
-            >
-              <img 
-                src={image} 
-                alt="Captured" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-              />
-              
-              {/* Display detected license plate */}
-              {licensePlate && (
-                <Box sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  p: 1,
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  color: 'white',
-                  textAlign: 'center'
-                }}>
-                  <Typography variant="h6">{licensePlate}</Typography>
-                  <Typography variant="body2">
-                    Confidence: {confidence}%
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-          )}
-        </Box>
-        
-        {/* Controls */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', maxWidth: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
-            <FormControl sx={{ minWidth: 150, flex: 1 }} size="small">
-              <InputLabel id="camera-select-label">Camera</InputLabel>
-              <Select
-                labelId="camera-select-label"
-                value={selectedCamera}
-                label="Camera"
-                onChange={(e) => setSelectedCamera(e.target.value as string)}
-                disabled={isProcessing}
+            {!isCameraActive && (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#1a1a1a',
+                }}
               >
-                <MenuItem value="local">{DEFAULT_WEBCAM.name}</MenuItem>
-                {availableCameras.map((camera) => (
-                  <MenuItem key={camera.id} value={camera.id}>
-                    {camera.name}
+                <Typography variant="h6" color="white">
+                  Camera Disabled
+                </Typography>
+              </Box>
+            )}
+          </WebcamContainer>
+        </Grid>
+
+        <Grid item xs={12}>
+          <ControlsContainer>
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel>Camera Device</InputLabel>
+              <Select
+                value={selectedDeviceId}
+                label="Camera Device"
+                onChange={(e) => handleDeviceChange(e.target.value)}
+                disabled={!isCameraActive}
+              >
+                {devices.map((device) => (
+                  <MenuItem key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Camera ${device.deviceId}`}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
-            {!autoDetect && (
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={capture}
-                disabled={isProcessing || !selectedCamera}
-                startIcon={<PhotoCamera />}
-                sx={{ flex: 1 }}
+
+            <Button
+              variant="contained"
+              color={isCameraActive ? "primary" : "error"}
+              startIcon={isCameraActive ? <Videocam /> : <VideocamOff />}
+              onClick={toggleCamera}
+            >
+              {isCameraActive ? 'Disable Camera' : 'Enable Camera'}
+            </Button>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={autoScan}
+                  onChange={toggleAutoScan}
+                  disabled={!isCameraActive}
+                />
+              }
+              label="Auto Scan"
+            />
+
+            <Button
+              variant="contained"
+              startIcon={<PhotoCamera />}
+              onClick={() => {
+                const imageSrc = webcamRef.current?.getScreenshot();
+                if (imageSrc) processImage(imageSrc);
+              }}
+              disabled={!isCameraActive || isProcessing}
+            >
+              Capture
+            </Button>
+
+            {image && (
+              <Button
+                variant="outlined"
+                startIcon={<SettingsBackupRestore />}
+                onClick={resetCapture}
               >
-                Capture
+                Reset
               </Button>
             )}
-            
-            <Button
-              variant={autoScan ? "contained" : "outlined"}
-              color={autoScan ? "success" : "primary"}
-              onClick={toggleAutoScan}
-              disabled={isProcessing || !selectedCamera || !autoDetect}
-              sx={{ flex: 1 }}
-            >
-              {autoScan ? "Auto-Scan On" : "Auto-Scan Off"}
-            </Button>
-            
-            {!autoDetect && image && (
-              <IconButton 
-                color="secondary" 
-                onClick={resetCapture}
-                disabled={isProcessing}
-              >
-                <SettingsBackupRestore />
-              </IconButton>
-            )}
-          </Box>
-        </Box>
-      </Box>
-      
-      {/* Results display for manual mode */}
-      {!autoDetect && licensePlate && (
-        <Paper sx={{ p: 2, mt: 2 }}>
-          <Typography variant="h6">
-            Detected License Plate: {licensePlate}
-          </Typography>
-          <Typography variant="body1">
-            Confidence: {confidence}%
-          </Typography>
-          {confidence && confidence < 75 && (
-            <Alert severity="warning" sx={{ mt: 1 }}>
-              Low confidence detection. Try again with better lighting or positioning.
-            </Alert>
-          )}
-        </Paper>
-      )}
+          </ControlsContainer>
+        </Grid>
+
+        {(licensePlate || isProcessing) && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2 }}>
+              {isProcessing ? (
+                <Box sx={{ width: '100%' }}>
+                  <LinearProgress />
+                  <Typography sx={{ mt: 1 }}>Processing image...</Typography>
+                </Box>
+              ) : (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    Detected License Plate: {licensePlate}
+                  </Typography>
+                  {confidence && (
+                    <Typography color="textSecondary">
+                      Confidence: {confidence}%
+                    </Typography>
+                  )}
+                </>
+              )}
+            </Paper>
+          </Grid>
+        )}
+      </Grid>
     </Box>
   );
 }; 

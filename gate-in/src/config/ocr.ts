@@ -10,8 +10,8 @@ interface PlateTypeConfig {
 export const OCR_CONFIG = {
   // Tesseract Configuration
   TESSERACT_LANG: 'eng',
-  PSM_MODE: 7, // Single line mode
-  MIN_CONFIDENCE_SCORE: 85, // Confidence threshold (0-100)
+  PSM_MODE: '7', // Treat image as a single text line
+  MIN_CONFIDENCE_SCORE: 75,
 
   // Scanning Settings
   SCAN_INTERVAL: 1000, // Milliseconds between scans
@@ -57,9 +57,9 @@ export const OCR_CONFIG = {
     JAYAPURA: { pattern: /^DS\s*\d{1,4}\s*[A-Z]{1,3}$/, expectedColor: 'BLACK', description: 'Jayapura' },
 
     // Special vehicles with updated colors
-    GOVERNMENT: { pattern: /^RI\s*\d{1,4}$/, expectedColor: 'RED', description: 'Government Vehicle' },
+    GOVERNMENT: { pattern: /^[A-Z]{2}\s?\d{1,4}\s?[A-Z]{2}$/, expectedColor: 'RED', description: 'Government Vehicle' },
     POLICE: { pattern: /^POL\s*\d{1,4}$/, expectedColor: 'RED', description: 'Police Vehicle' },
-    MILITARY: { pattern: /^TNI\s*\d{1,4}$/, expectedColor: 'RED', description: 'Military Vehicle' },
+    MILITARY: { pattern: /^[A-Z]{2}\s?\d{4}\s?[A-Z]{2}$/, expectedColor: 'BLACK', description: 'Military Vehicle' },
     CORPS_DIPLOMATIC: { pattern: /^CD\s*\d{1,4}$/, expectedColor: 'RED', description: 'Diplomatic Corps' },
 
     // Electric Vehicles (New)
@@ -125,18 +125,29 @@ export const OCR_CONFIG = {
       pattern: /^[A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{1,3}\s*W$/, 
       expectedColor: 'GREEN', 
       description: 'Tourism Vehicle' 
+    },
+
+    // Standard license plate
+    STANDARD: {
+      pattern: /^[A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,3}$/,
+      description: 'Standard license plate',
+      expectedColor: 'BLACK' as PlateColor
+    },
+    ELECTRIC_VEHICLE: {
+      pattern: /^[A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,2}E$/,
+      description: 'Electric vehicle plate',
+      expectedColor: 'GREEN' as PlateColor
     }
   } as Record<string, PlateTypeConfig>,
 
   // Image preprocessing options
   PREPROCESSING: {
-    sharpen: true,
-    contrast: true,
-    grayscale: true,
-    threshold: true,
+    RESIZE_WIDTH: 640,
+    CONTRAST: 1.5,
+    THRESHOLD: 128
   } as ImageProcessingOptions,
 
   // Cache settings
   CACHE_SIZE: 100, // Number of recent results to cache
-  CACHE_EXPIRY: 1000 * 60 * 60, // Cache expiry time (1 hour)
+  CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes
 }; 

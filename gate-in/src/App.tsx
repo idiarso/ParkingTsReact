@@ -1,13 +1,16 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import GateInDashboard from './components/Dashboard';
 import AutomatedEntryGate from './components/AutomatedEntryGate';
-import TicketGenerator from './components/TicketGenerator';
-import Navbar from './components/Navbar';
 import { CameraSettings } from './components/CameraSettings';
 import { OCRTester } from './components/OCRTester';
+import { RecentEntries } from './components/RecentEntries';
+import Help from './components/Help/index';
+import Profile from './components/Profile/index';
+import Settings from './components/Settings/index';
+import Navbar from './components/Navbar';
 
 // Create theme instance
 const theme = createTheme({
@@ -29,6 +32,9 @@ const theme = createTheme({
 });
 
 const App: React.FC = () => {
+  // Add state for recent entries
+  const [recentEntries] = useState<any[]>([]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -39,9 +45,13 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<GateInDashboard />} />
               <Route path="/automated" element={<AutomatedEntryGate />} />
-              <Route path="/ticket" element={<TicketGenerator />} />
               <Route path="/camera-settings" element={<CameraSettings />} />
               <Route path="/ocr-test" element={<OCRTester />} />
+              <Route path="/recent-entries" element={<RecentEntries entries={recentEntries} />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
         </Box>

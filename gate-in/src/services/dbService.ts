@@ -175,6 +175,110 @@ class DBService {
       request.onerror = () => reject(request.error);
     });
   }
+
+  // Delete a vehicle entry
+  async deleteVehicleEntry(id: string): Promise<boolean> {
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.delete(this.storeName, id);
+      } else {
+        await this.deleteEntryFromIndexedDB(id);
+      }
+      return true;
+    } catch (error) {
+      console.error('Failed to delete vehicle entry:', error);
+      return false;
+    }
+  }
+
+  // Delete all vehicle entries
+  async deleteAllEntries(): Promise<boolean> {
+    try {
+      if (window.electronAPI) {
+        // Get all entries and delete them one by one
+        const entries = await window.electronAPI.getAll(this.storeName);
+        for (const entry of entries) {
+          if (entry && entry.id) {
+            await window.electronAPI.delete(this.storeName, entry.id);
+          }
+        }
+      } else {
+        await this.clearIndexedDB();
+      }
+      return true;
+    } catch (error) {
+      console.error('Failed to delete all entries:', error);
+      return false;
+    }
+  }
+
+  // Private method to delete entry from IndexedDB
+  private deleteEntryFromIndexedDB(id: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('parking-system', 1);
+      
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        const transaction = db.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        
+        const deleteRequest = store.delete(id);
+        deleteRequest.onsuccess = () => resolve();
+        deleteRequest.onerror = () => reject(deleteRequest.error);
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  // Clear all entries
+  async clearEntries(): Promise<void> {
+    try {
+      if (window.electronAPI) {
+        // Get all entries first
+        const entries = await window.electronAPI.getAll(this.storeName);
+        // Delete each entry individually since we don't have a clear method
+        for (const entry of entries) {
+          if (entry && entry.id) {
+            await window.electronAPI.delete(this.storeName, entry.id);
+          }
+        }
+      } else {
+        await this.clearIndexedDB();
+      }
+    } catch (error) {
+      console.error('Failed to clear entries:', error);
+      throw error;
+    }
+  }
+
+  // Clear IndexedDB store
+  private async clearIndexedDB(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('parking-system', 1);
+      
+      request.onerror = () => reject(request.error);
+      
+      request.onsuccess = () => {
+        const db = request.result;
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          
+          const clearRequest = store.clear();
+          
+          clearRequest.onsuccess = () => resolve();
+          clearRequest.onerror = () => reject(clearRequest.error);
+          
+          // Ensure transaction completes
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        } catch (error) {
+          reject(error);
+        }
+      };
+    });
+  }
 }
 
 // Create a singleton instance

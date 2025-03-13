@@ -43,15 +43,50 @@ Jika komputer client belum memiliki bahan-bahan yang diperlukan, ikuti langkah-l
    - Untuk server, unduh dan instal PostgreSQL dari https://www.postgresql.org/
 
 3. **Konfigurasi Jaringan**
-   - Atur IP statis untuk setiap komputer:
-     - Server & Admin: 192.168.1.10 (contoh)
-     - Gate-In: 192.168.1.20 (contoh)
-     - Gate-Out: 192.168.1.30 (contoh)
-   - Pastikan semua komputer terhubung dalam jaringan yang sama
-   - Buka port yang diperlukan di firewall:
-     - 5000: API Server
-     - 8080: WebSocket Server
-     - 3000-3002: UI Aplikasi
+   
+   #### Alokasi IP Statis
+   | Perangkat          | IP Address      | Subnet Mask     | Gateway        | Fungsi                    |
+   |-------------------|-----------------|-----------------|----------------|---------------------------|
+   | Server & Admin    | 192.168.1.10   | 255.255.255.0  | 192.168.1.1   | Database & Admin Panel    |
+   | Gate-In PC       | 192.168.1.20   | 255.255.255.0  | 192.168.1.1   | Aplikasi Gate Masuk      |
+   | Gate-Out PC      | 192.168.1.30   | 255.255.255.0  | 192.168.1.1   | Aplikasi Gate Keluar     |
+   | Kamera Gate-In   | 192.168.1.21   | 255.255.255.0  | 192.168.1.1   | IP Camera Gate Masuk     |
+   | Kamera Gate-Out  | 192.168.1.31   | 255.255.255.0  | 192.168.1.1   | IP Camera Gate Keluar    |
+
+   #### Konfigurasi Windows
+   1. Buka Network & Internet Settings
+   2. Pilih Change adapter options
+   3. Klik kanan pada adapter jaringan > Properties
+   4. Pilih Internet Protocol Version 4 (TCP/IPv4)
+   5. Masukkan IP sesuai tabel di atas
+   
+   #### Konfigurasi IP Camera
+   1. Akses web interface kamera menggunakan IP default
+   2. Login dengan kredensial default (lihat manual kamera)
+   3. Masuk ke Network Settings
+   4. Set IP statis sesuai tabel di atas
+   5. Simpan dan restart kamera
+
+   #### Pengujian Koneksi
+   1. Test koneksi antar komputer:
+      ```
+      ping 192.168.1.10 (test ke server)
+      ping 192.168.1.20 (test ke gate-in)
+      ping 192.168.1.30 (test ke gate-out)
+      ```
+   2. Test koneksi ke kamera:
+      ```
+      ping 192.168.1.21 (test ke kamera in)
+      ping 192.168.1.31 (test ke kamera out)
+      ```
+   3. Pastikan semua perangkat bisa saling terhubung
+
+   #### Port yang Diperlukan
+   - 5000: API Server
+   - 8080: WebSocket Server
+   - 3000-3002: UI Aplikasi
+   - 80/443: Akses web interface kamera
+   - 554: RTSP stream kamera (jika digunakan)
 
 4. **Persiapan Hardware**
    - Pasang dan konfigurasikan kamera di Gate-In
@@ -137,6 +172,92 @@ Jika installer tidak tersedia, ikuti langkah-langkah berikut:
   - Hapus folder node_modules dan coba lagi
   - Pastikan koneksi internet stabil
   - Coba dengan `npm install --legacy-peer-deps`
+
+## Keamanan Sistem
+
+### Keamanan Jaringan
+
+1. **Isolasi Jaringan**
+   - Gunakan VLAN terpisah untuk sistem parkir
+   - Pisahkan jaringan untuk server, gate-in, dan gate-out
+   - Implementasi firewall untuk membatasi akses:
+     ```
+     - Port 5000: API Server (hanya internal)
+     - Port 8080: WebSocket Server (hanya internal)
+     - Port 3000-3002: UI Aplikasi (sesuai kebutuhan)
+     ```
+
+2. **Enkripsi Data**
+   - Semua komunikasi antar komponen menggunakan HTTPS
+   - Data sensitif di database terenkripsi
+   - Implementasi token-based authentication untuk API
+   - Rotasi regular untuk credential dan token
+
+3. **Monitoring & Backup**
+   - Sistem logging terpusat di server
+   - Backup otomatis database setiap hari
+   - Monitor traffic jaringan untuk deteksi anomali
+   - Alert system untuk kejadian mencurigakan
+
+4. **Best Practices**
+   - Update regular untuk semua komponen sistem
+   - Ganti password secara berkala
+   - Batasi akses fisik ke server dan perangkat
+   - Dokumentasi lengkap untuk prosedur keamanan
+
+### Prosedur Backup
+
+1. **Database Backup**
+   ```bash
+   # Backup otomatis setiap hari jam 00:00
+   0 0 * * * /usr/bin/pg_dump -U postgres parking > /backup/parking_$(date +\%Y\%m\%d).sql
+
+   # Simpan backup 30 hari terakhir
+   find /backup/ -name "parking_*.sql" -mtime +30 -delete
+   ```
+
+2. **File Backup**
+   - Backup gambar kendaraan setiap minggu
+   - Backup log sistem setiap hari
+   - Simpan di lokasi terpisah dari server utama
+
+3. **Restore Procedure**
+   - Dokumentasi lengkap untuk restore database
+   - Regular testing untuk prosedur restore
+   - Verifikasi integritas backup
+
+### Monitoring System
+
+1. **Log Monitoring**
+   - Centralized logging dengan ELK Stack
+   - Alert untuk error kritis
+   - Regular log rotation
+
+2. **Performance Monitoring**
+   - Monitor resource usage (CPU, RAM, Disk)
+   - Monitor response time API
+   - Monitor koneksi database
+
+3. **Security Monitoring**
+   - Monitor login attempts
+   - Monitor akses file sistem
+   - Monitor traffic jaringan
+
+### Disaster Recovery
+
+1. **Failover System**
+   - Backup server dalam kondisi standby
+   - Prosedur failover otomatis
+   - Regular testing failover
+
+2. **Recovery Time Objective (RTO)**
+   - Database: 1 jam
+   - Aplikasi: 2 jam
+   - Sistem keseluruhan: 4 jam
+
+3. **Recovery Point Objective (RPO)**
+   - Database: 5 menit
+   - File sistem: 1 hari
 
 ## Authentication
 
@@ -266,4 +387,72 @@ Regular system checks are recommended:
 - Backup database daily
 - Update software when new versions are available
 - Test hardware components weekly
-- Monitor disk space and system resources 
+- Monitor disk space and system resources
+
+### Konfigurasi Printer Karcis
+
+#### Instalasi Printer Gate-In
+1. **Instalasi Driver**
+   - Pasang printer thermal di komputer Gate-In
+   - Install driver printer sesuai merk dan model
+   - Untuk printer EPSON TM-series:
+     ```
+     - Download EPSON TM Virtual Port Driver
+     - Install EPSON Advanced Printer Driver (APD)
+     - Jalankan EPSON TM Virtual Port Driver
+     ```
+   - Untuk printer POS-58/80 series:
+     ```
+     - Install driver Generic/Text Only
+     - Set paper size sesuai ukuran karcis (biasanya 58mm atau 80mm)
+     ```
+
+2. **Konfigurasi Windows**
+   - Buka Settings > Printers & Scanners
+   - Pilih printer thermal yang sudah terpasang
+   - Set sebagai Default Printer
+   - Print test page untuk memastikan printer berfungsi
+
+3. **Konfigurasi di Aplikasi**
+   - Buka file `.env` di folder gate-in
+   - Tambahkan konfigurasi printer:
+     ```
+     PRINTER_NAME=nama_printer_thermal
+     TICKET_WIDTH=58  # atau 80 tergantung printer
+     PRINT_COPIES=1
+     ```
+   - Restart aplikasi gate-in untuk menerapkan perubahan
+
+4. **Format Karcis**
+   - Header: Nama lokasi parkir
+   - QR Code/Barcode: Ticket ID
+   - Informasi kendaraan:
+     - Nomor plat
+     - Jenis kendaraan
+     - Waktu masuk
+   - Footer: Informasi tambahan/promosi
+
+5. **Troubleshooting Printer**
+   - **Printer tidak terdeteksi**:
+     1. Cek koneksi USB/Serial
+     2. Reinstall driver
+     3. Restart spooler service:
+        ```
+        net stop spooler
+        net start spooler
+        ```
+   
+   - **Hasil cetak tidak sesuai**:
+     1. Cek pengaturan ukuran kertas
+     2. Pastikan format karcis sesuai ukuran printer
+     3. Kalibrasi printer jika diperlukan
+
+   - **Printer error saat mencetak**:
+     1. Cek ketersediaan kertas
+     2. Bersihkan print head
+     3. Cek status error di printer utility
+
+6. **Maintenance Printer**
+   - Bersihkan print head secara berkala
+   - Cek dan ganti kertas sebelum habis
+   - Backup printer cadangan untuk antisipasi kerusakan 

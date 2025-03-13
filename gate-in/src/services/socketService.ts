@@ -1,25 +1,41 @@
 import { Manager } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+console.log('Environment:', {
+  SOCKET_URL,
+  IS_DEV,
+  NODE_ENV: process.env.NODE_ENV
+});
 
 class SocketService {
   private socket: any = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isRegistered: boolean = false;
   private connectionChangeCallbacks: ((connected: boolean) => void)[] = [];
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 10;
 
   connect() {
     if (!this.socket) {
       try {
+        console.log('Attempting to connect to socket server at:', SOCKET_URL);
+        
         const manager = new Manager(SOCKET_URL, {
-          transports: ['websocket'],
-          autoConnect: true,
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 10,
+          reconnectionDelay: 2000,
+          timeout: 10000,
+          autoConnect: true
         });
 
         this.socket = manager.socket('/');
 
         this.socket.on('connect', () => {
           console.log('Connected to socket server');
+          this.reconnectAttempts = 0;
           this.registerAsGateIn();
           this.notifyConnectionChange(true);
         });
@@ -32,11 +48,18 @@ class SocketService {
         });
 
         this.socket.on('connect_error', (error: any) => {
-          console.error('Socket connection error:', error);
+          console.error('Socket connection error:', error.message);
+          this.notifyConnectionChange(false);
+          this.reconnect();
+        });
+
+        this.socket.on('error', (error: any) => {
+          console.error('Socket error:', error);
           this.notifyConnectionChange(false);
         });
       } catch (error) {
         console.error('Failed to initialize socket:', error);
+        this.reconnect();
       }
     }
   }
@@ -44,9 +67,16 @@ class SocketService {
   private registerAsGateIn() {
     if (!this.socket || this.isRegistered) return;
     
-    this.socket.emit('register:client', { type: 'gate-in' });
-    this.isRegistered = true;
-    console.log('Registered as gate-in client');
+    try {
+      console.log('Registering as gate-in client...');
+      this.socket.emit('register:client', { type: 'gate-in' });
+      this.isRegistered = true;
+      console.log('Successfully registered as gate-in client');
+    } catch (error) {
+      console.error('Failed to register as gate-in:', error);
+      this.isRegistered = false;
+      this.reconnect();
+    }
   }
 
   private reconnect() {
@@ -54,9 +84,21 @@ class SocketService {
       clearTimeout(this.reconnectTimer);
     }
 
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('Max reconnection attempts reached. Please check server status.');
+      return;
+    }
+
+    this.reconnectAttempts++;
+    console.log(`Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+
     this.reconnectTimer = setTimeout(() => {
       console.log('Attempting to reconnect...');
-      this.connect();
+      if (this.socket) {
+        this.socket.connect();
+      } else {
+        this.connect();
+      }
     }, 5000);
   }
 
@@ -70,6 +112,7 @@ class SocketService {
       this.reconnectTimer = null;
     }
     this.isRegistered = false;
+    this.reconnectAttempts = 0;
   }
 
   notifyVehicleEntry(data: { 

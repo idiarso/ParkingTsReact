@@ -1,4 +1,4 @@
-export type PlateColor = 'BLACK' | 'RED' | 'YELLOW' | 'WHITE' | 'BLUE' | 'GREEN';
+export type PlateColor = 'BLACK' | 'WHITE' | 'YELLOW' | 'RED' | 'GREEN' | 'BLUE';
 
 interface ColorRange {
   min: [number, number, number];
@@ -64,65 +64,67 @@ function createImageData(imageUrl: string): Promise<ImageData> {
   });
 }
 
-export async function getDominantColor(input: ImageData | string | Uint8ClampedArray): Promise<PlateColor> {
-  let imageData: ImageData;
+export async function getDominantColor(imageData: string | ImageData): Promise<PlateColor> {
+  // Create a canvas element
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
 
-  if (input instanceof Uint8ClampedArray) {
-    // Create ImageData from Uint8ClampedArray
-    const size = Math.sqrt(input.length / 4);
-    imageData = new ImageData(input, size, size);
-  } else if (typeof input === 'string') {
-    // Load image from URL
-    imageData = await createImageData(input);
-  } else {
-    imageData = input;
+  // Load image
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = typeof imageData === 'string' ? imageData : convertImageDataToUrl(imageData);
+  });
+
+  // Draw image to canvas
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.drawImage(img, 0, 0);
+
+  // Get pixel data
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  
+  // Calculate average RGB
+  let r = 0, g = 0, b = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    r += data[i];
+    g += data[i + 1];
+    b += data[i + 2];
   }
+  
+  const pixels = data.length / 4;
+  r = Math.round(r / pixels);
+  g = Math.round(g / pixels);
+  b = Math.round(b / pixels);
 
-  const colorCounts: Record<PlateColor, number> = {
-    BLACK: 0,
-    RED: 0,
-    YELLOW: 0,
-    WHITE: 0,
-    BLUE: 0,
-    GREEN: 0
-  };
+  // Determine dominant color
+  const brightness = (r + g + b) / 3;
+  const threshold = 128;
 
-  const data = imageData.data;
-  let validPixels = 0;
+  if (brightness < threshold * 0.5) return 'BLACK';
+  if (brightness > threshold * 1.5) return 'WHITE';
+  
+  // Check for specific colors
+  if (r > g + b) return 'RED';
+  if (g > r + b) return 'GREEN';
+  if (b > r + g) return 'BLUE';
+  if (r > threshold && g > threshold && b < threshold) return 'YELLOW';
+  
+  return 'BLACK';
+}
 
-  // Sample every 4th pixel for performance
-  for (let i = 0; i < data.length; i += 16) {
-    const pixel: [number, number, number] = [data[i], data[i + 1], data[i + 2]];
-    
-    if (!isPixelBrightnessValid(pixel)) continue;
-    
-    validPixels++;
-    
-    for (const [color, range] of Object.entries(COLOR_RANGES)) {
-      if (isPixelInRange(pixel, range)) {
-        colorCounts[color as PlateColor]++;
-        break;
-      }
-    }
-  }
-
-  // Find color with highest count
-  let dominantColor: PlateColor = 'BLACK';
-  let maxCount = 0;
-
-  for (const [color, count] of Object.entries(colorCounts)) {
-    if (count > maxCount) {
-      maxCount = count;
-      dominantColor = color as PlateColor;
-    }
-  }
-
-  // If no clear dominant color is found, default to BLACK
-  if (maxCount / validPixels < 0.2) {
-    return 'BLACK';
-  }
-
-  return dominantColor;
+function convertImageDataToUrl(imageData: ImageData): string {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+  
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  ctx.putImageData(imageData, 0, 0);
+  
+  return canvas.toDataURL();
 }
 
 // Backward compatibility

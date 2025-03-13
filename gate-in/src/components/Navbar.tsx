@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
   Typography,
-  Button,
   IconButton,
   Menu,
   MenuItem,
@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userAnchorEl, setUserAnchorEl] = useState<null | HTMLElement>(null);
   
@@ -47,15 +48,14 @@ const Navbar: React.FC = () => {
   };
   
   const handleNavigate = (route: string) => {
-    // Navigation logic here
-    console.log(`Navigating to ${route}`);
+    navigate(route);
     handleClose();
   };
   
   const handleLogout = () => {
+    // Implement logout logic here
     console.log('Logging out');
     handleUserMenuClose();
-    // Implement logout logic
   };
 
   return (
@@ -92,14 +92,14 @@ const Navbar: React.FC = () => {
           open={Boolean(anchorEl)}
           onClose={handleClose}
         >
-          <MenuItem onClick={() => handleNavigate('/dashboard')}>
+          <MenuItem onClick={() => handleNavigate('/')}>
             <ListItemIcon>
               <DirectionsCar fontSize="small" />
             </ListItemIcon>
             <ListItemText>Dashboard</ListItemText>
           </MenuItem>
           
-          <MenuItem onClick={() => handleNavigate('/entry')}>
+          <MenuItem onClick={() => handleNavigate('/automated')}>
             <ListItemIcon>
               <DirectionsCar fontSize="small" />
             </ListItemIcon>
@@ -145,14 +145,14 @@ const Navbar: React.FC = () => {
           open={Boolean(userAnchorEl)}
           onClose={handleUserMenuClose}
         >
-          <MenuItem onClick={handleUserMenuClose}>
+          <MenuItem onClick={() => handleNavigate('/profile')}>
             <ListItemIcon>
               <Person fontSize="small" />
             </ListItemIcon>
             <ListItemText>Profile</ListItemText>
           </MenuItem>
           
-          <MenuItem onClick={handleUserMenuClose}>
+          <MenuItem onClick={() => handleNavigate('/settings')}>
             <ListItemIcon>
               <Settings fontSize="small" />
             </ListItemIcon>

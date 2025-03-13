@@ -16,7 +16,7 @@ import {
   Chip,
   CircularProgress
 } from '@mui/material';
-import { green, red, orange } from '@mui/material/colors';
+import { green } from '@mui/material/colors';
 import { Check, Warning, Error as ErrorIcon, DirectionsCar } from '@mui/icons-material';
 import { WebcamCapture } from './WebcamCapture';
 import socketService from '../services/socketService';

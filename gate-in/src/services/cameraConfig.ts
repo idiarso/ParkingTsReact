@@ -118,32 +118,12 @@ class CameraConfigService {
   }
   
   // Test if a camera is accessible
-  async testCamera(config: IPCameraConfig): Promise<boolean> {
-    // For security reasons, browser may not allow testing IP cameras directly
-    // This is a simplified example
+  async testConnection(config: IPCameraConfig): Promise<boolean> {
     try {
       const url = this.formatCameraUrl(config);
-      
-      // For MJPEG type, we can test with an image request
-      if (config.type === 'mjpeg' || config.type === 'http') {
-        const response = await fetch(url, { 
-          method: 'HEAD',
-          mode: 'no-cors', // This is needed for cross-origin requests
-          credentials: 'include'
-        });
-        return true; // If no error is thrown, assume it's accessible
-      }
-      
-      // RTSP streams cannot be directly tested in browser
-      if (config.type === 'rtsp') {
-        // Return true for RTSP as we can't test it directly in browser
-        // In a real application, this would require a backend service
-        return true;
-      }
-      
-      return false;
-    } catch (err) {
-      console.error('Failed to test camera:', err);
+      await fetch(url);
+      return true;
+    } catch (error) {
       return false;
     }
   }
