@@ -30,11 +30,8 @@ class HardwareService {
   private loopDetectorTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Listen for hardware events from the socket server
-    socketService.on('hardware-status', (status: Partial<HardwareStatus>) => {
-      this.updateStatus(status);
-    });
-
+    this.initialize();
+    
     // Simulate loop detector events
     setInterval(() => {
       const hasVehicle = Math.random() > 0.7;
@@ -42,6 +39,20 @@ class HardwareService {
         this.handleLoopDetection(hasVehicle);
       }
     }, 2000);
+  }
+  
+  // Initialize hardware service after socket is ready
+  private initialize() {
+    // Register a connection change callback to set up listeners when socket is ready
+    socketService.onConnectionChange((connected) => {
+      if (connected) {
+        console.log('Hardware service: Socket connected, setting up hardware-status listener');
+        // Listen for hardware events from the socket server
+        socketService.on('hardware-status', (status: Partial<HardwareStatus>) => {
+          this.updateStatus(status);
+        });
+      }
+    });
   }
 
   private handleLoopDetection(detected: boolean) {

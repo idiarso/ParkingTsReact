@@ -6,6 +6,9 @@ export interface VehicleEntry {
   plateNumber: string;
   vehicleType: string;
   entryTime: string;
+  ticketId?: string;
+  driverName?: string;
+  phoneNumber?: string;
 }
 
 export interface ApiResponse<T> {

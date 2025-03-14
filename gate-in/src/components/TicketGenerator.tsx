@@ -11,13 +11,15 @@ import {
   DialogContent,
   DialogActions,
   Alert,
-  Snackbar
+  Snackbar,
+  IconButton
 } from '@mui/material';
 import { 
   Print, 
-  CheckCircle
+  Camera as CameraIcon,
+  PhotoCamera,
+  Refresh
 } from '@mui/icons-material';
-import { v4 as uuidv4 } from 'uuid';
 import socketService from '../services/socketService';
 import dbService, { VehicleEntry } from '../services/dbService';
 import JsBarcode from 'jsbarcode';
@@ -63,29 +65,78 @@ const printStyles = `
   }
 `;
 
-// Helper function to format date
-const formatDate = (date: Date): string => {
-  const pad = (num: number) => num.toString().padStart(2, '0');
-  const day = pad(date.getDate());
-  const month = pad(date.getMonth() + 1);
-  const year = date.getFullYear();
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  
-  return `${day}/${month}/${year}, ${hours}.${minutes}.${seconds}`;
-};
-
 const TicketGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [ticket, setTicket] = useState<VehicleEntry | null>(null);
   const [showTicket, setShowTicket] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dbInitialized, setDbInitialized] = useState(false);
-  const [licensePlate, setLicensePlate] = useState<string>('');
-  const [vehicleHistory, setVehicleHistory] = useState<VehicleEntry[]>([]);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const barcodeRef = useRef<HTMLCanvasElement>(null);
-  const barcodeContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Initialize camera
+  const initCamera = async () => {
+    try {
+      const constraints = {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: "environment"
+        }
+      };
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(mediaStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        setIsCameraActive(true);
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setError('Gagal mengakses kamera. Pastikan kamera tersedia dan izin diberikan.');
+    }
+  };
+
+  // Stop camera
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+      setIsCameraActive(false);
+    }
+  };
+
+  // Capture image using canvas
+  const captureImage = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      // Set canvas size to match video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw the video frame to canvas
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to base64
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      handleGenerateTicket(imageData);
+      
+    } catch (err) {
+      console.error('Error capturing image:', err);
+      setError('Gagal mengambil gambar');
+    }
+  };
 
   // Initialize database
   useEffect(() => {
@@ -102,26 +153,16 @@ const TicketGenerator: React.FC = () => {
       }
     };
     initDb();
-  }, []);
 
-  // Load vehicle history when license plate changes
-  useEffect(() => {
-    const loadVehicleHistory = async () => {
-      if (licensePlate && licensePlate !== '-') {
-        try {
-          const history = await dbService.getEntriesByLicensePlate(licensePlate);
-          setVehicleHistory(history);
-        } catch (err) {
-          console.error('Error loading vehicle history:', err);
-        }
-      }
+    // Cleanup camera on unmount
+    return () => {
+      stopCamera();
     };
-    loadVehicleHistory();
-  }, [licensePlate]);
+  }, []);
 
   // Generate barcode when ticket is available
   useEffect(() => {
-    if (ticket && barcodeRef.current && barcodeContainerRef.current) {
+    if (ticket && barcodeRef.current) {
       try {
         console.log("Generating barcode for ticket:", ticket);
         
@@ -145,19 +186,13 @@ const TicketGenerator: React.FC = () => {
           background: "#ffffff"
         });
 
-        // Make sure barcode is visible
-        barcodeContainerRef.current.style.display = 'block';
-        barcodeRef.current.style.display = 'block';
-        barcodeRef.current.style.width = '100%';
-        barcodeRef.current.style.height = 'auto';
-
       } catch (err) {
         console.error("Error generating barcode:", err);
       }
     }
   }, [ticket, showTicket]);
 
-  const handleGenerateTicket = async () => {
+  const handleGenerateTicket = async (imageData?: string) => {
     if (!dbInitialized) {
       setError('Database belum siap. Mohon tunggu sebentar.');
       return;
@@ -168,20 +203,16 @@ const TicketGenerator: React.FC = () => {
     
     try {
       const now = new Date();
-      // Generate ticket ID with format: YYYYMMDDHHMMSS-XXXX
-      const datePart = now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
-      const randomPart = Math.floor(1000 + Math.random() * 9000);
-      const ticketId = `${datePart}-${randomPart}`;
-      
-      // Get the current license plate from camera/OCR if available
-      const currentPlate = licensePlate || await getCurrentLicensePlate();
+      // Generate simple ticket ID: YYYYMMDDHHMMSS
+      const ticketId = now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
       
       const newEntry: Omit<VehicleEntry, 'id'> = {
         ticketId,
-        licensePlate: currentPlate,
-        vehicleType: determineVehicleType(currentPlate, vehicleHistory),
+        licensePlate: '-',
+        vehicleType: 'UNKNOWN',
         entryTime: now.getTime(),
-        processed: false
+        processed: false,
+        image: imageData
       };
       
       console.log("Creating new entry:", newEntry);
@@ -190,15 +221,11 @@ const TicketGenerator: React.FC = () => {
       const savedEntry = await dbService.addVehicleEntry(newEntry);
       console.log("Saved entry:", savedEntry);
       
-      if (!savedEntry) {
-        throw new Error('Gagal menyimpan tiket ke database');
-      }
-      
       // Notify socket server
       socketService.notifyVehicleEntry({
         ticketId,
-        licensePlate: currentPlate,
-        vehicleType: newEntry.vehicleType,
+        licensePlate: '-',
+        vehicleType: 'UNKNOWN',
         entryTime: now.toISOString()
       });
       
@@ -208,6 +235,7 @@ const TicketGenerator: React.FC = () => {
       
       setTicket(savedEntry);
       setShowTicket(true);
+      stopCamera(); // Stop camera after capturing
       
     } catch (err) {
       console.error('Error generating ticket:', err);
@@ -217,39 +245,6 @@ const TicketGenerator: React.FC = () => {
     }
   };
 
-  // Helper function to get current license plate from camera/OCR
-  const getCurrentLicensePlate = async (): Promise<string> => {
-    // TODO: Implement actual license plate detection
-    // For now, return a placeholder
-    return 'B 1234 XY';
-  };
-
-  // Helper function to determine vehicle type based on history
-  const determineVehicleType = (plate: string, history: VehicleEntry[]): string => {
-    if (history.length > 0) {
-      // Use the most common vehicle type from history
-      const typeCounts = history.reduce((acc, entry) => {
-        acc[entry.vehicleType] = (acc[entry.vehicleType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      let maxCount = 0;
-      let mostCommonType = 'UNKNOWN';
-      
-      Object.entries(typeCounts).forEach(([type, count]) => {
-        if (count > maxCount) {
-          mostCommonType = type;
-          maxCount = count;
-        }
-      });
-      
-      return mostCommonType;
-    }
-    
-    // Default to car if no history
-    return 'CAR';
-  };
-  
   const handlePrintTicket = () => {
     const style = document.createElement('style');
     style.innerHTML = printStyles;
@@ -262,17 +257,66 @@ const TicketGenerator: React.FC = () => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto', mt: 4 }}>
+    <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto', mt: 4 }}>
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h4" gutterBottom fontWeight="bold">
           Tiket Parkir
         </Typography>
 
+        {/* Camera Section */}
+        <Box sx={{ mb: 3, position: 'relative' }}>
+          {isCameraActive ? (
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                onLoadedMetadata={() => {
+                  if (canvasRef.current && videoRef.current) {
+                    canvasRef.current.width = videoRef.current.videoWidth;
+                    canvasRef.current.height = videoRef.current.videoHeight;
+                  }
+                }}
+                style={{ width: '100%', maxWidth: '640px', borderRadius: '8px' }}
+              />
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={captureImage}
+                  startIcon={<PhotoCamera />}
+                  disabled={isGenerating}
+                >
+                  Ambil Foto
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={stopCamera}
+                  sx={{ ml: 2 }}
+                >
+                  Tutup Kamera
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={initCamera}
+              startIcon={<CameraIcon />}
+              disabled={isGenerating}
+            >
+              Buka Kamera
+            </Button>
+          )}
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
+        </Box>
+
         <Button
           variant="contained"
           color="primary"
           size="large"
-          onClick={handleGenerateTicket}
+          onClick={() => handleGenerateTicket()}
           disabled={isGenerating}
           sx={{ 
             py: 2, 
@@ -289,20 +333,9 @@ const TicketGenerator: React.FC = () => {
               Processing...
             </>
           ) : (
-            'Get Ticket'
+            'Generate Tiket'
           )}
         </Button>
-        
-        <Snackbar 
-          open={!!error} 
-          autoHideDuration={6000} 
-          onClose={() => setError(null)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        </Snackbar>
       </Box>
       
       <Dialog 
@@ -325,25 +358,12 @@ const TicketGenerator: React.FC = () => {
                 Jenis Kendaraan: {ticket?.vehicleType || '-'}
               </Typography>
               <Typography className="ticket-info">
-                Waktu Masuk: {ticket ? formatDate(new Date(ticket.entryTime)) : '-'}
+                Waktu Masuk: {ticket ? new Date(ticket.entryTime).toLocaleString('id-ID') : '-'}
               </Typography>
 
-              <Box ref={barcodeContainerRef} sx={{ mt: 2, mb: 1, textAlign: 'center' }}>
-                <canvas ref={barcodeRef} id="barcodeCanvas" style={{ maxWidth: '100%' }}></canvas>
+              <Box sx={{ mt: 2, mb: 1 }}>
+                <canvas ref={barcodeRef} id="barcodeCanvas"></canvas>
               </Box>
-
-              {vehicleHistory.length > 0 && (
-                <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed #ccc' }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Riwayat Kendaraan:
-                  </Typography>
-                  {vehicleHistory.slice(0, 3).map((entry, index) => (
-                    <Typography key={index} variant="caption" display="block" color="textSecondary">
-                      {formatDate(new Date(entry.entryTime))} - {entry.vehicleType}
-                    </Typography>
-                  ))}
-                </Box>
-              )}
             </CardContent>
           </Card>
           
@@ -366,6 +386,20 @@ const TicketGenerator: React.FC = () => {
           </DialogActions>
         </DialogContent>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setError(null)}
+          severity="error"
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };

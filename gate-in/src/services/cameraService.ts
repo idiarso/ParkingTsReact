@@ -479,77 +479,127 @@ class CameraService {
       const fullUrl = `${url.origin}${endpoint}`;
       console.log('Menggunakan URL MJPEG:', fullUrl);
 
-      // Buat Basic Auth header
-      const username = this.cameraConfig.username || 'admin';
-      const password = this.cameraConfig.password || '@dminparkir';
-      const credentials = btoa(`${username}:${password}`);
+      // Buat Basic Auth header untuk HTTP header
+      const authString = this.createAuthString();
+      const proxyUrl = `/api/camera/proxy?url=${encodeURIComponent(fullUrl)}&auth=${encodeURIComponent(authString)}`;
+      
+      console.log('Menggunakan proxy URL untuk menghindari CORS:', proxyUrl.replace(/auth=.*/, 'auth=***'));
 
-      // Buat img element untuk memuat gambar
-      return new Promise((resolve) => {
-        const img = document.createElement('img');
-        img.style.display = 'none';
-        document.body.appendChild(img);
+      // Metode 1: Coba menggunakan proxy server (jika ada)
+      try {
+        console.log('Metode 1: Coba menggunakan proxy server');
+        const proxyResponse = await fetch(proxyUrl, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+        
+        if (proxyResponse.ok) {
+          const blob = await proxyResponse.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          console.log('Berhasil mengambil gambar melalui proxy!');
+          return imageUrl;
+        } else {
+          console.warn('Proxy error:', proxyResponse.status, proxyResponse.statusText);
+          throw new Error('Proxy tidak tersedia');
+        }
+      } catch (proxyError) {
+        console.warn('Metode proxy gagal:', proxyError);
+        
+        // Metode 2: Coba mengakses image langsung 
+        return new Promise((resolve) => {
+          const img = document.createElement('img');
+          img.style.display = 'none';
+          document.body.appendChild(img);
 
-        // Set timeout untuk membatalkan jika terlalu lama
-        const timeoutId = setTimeout(() => {
-          document.body.removeChild(img);
-          console.warn('Timeout mengambil gambar');
-          resolve(null);
-        }, 10000);
+          // Set timeout untuk membatalkan jika terlalu lama
+          const timeoutId = setTimeout(() => {
+            document.body.removeChild(img);
+            console.warn('Timeout mengambil gambar');
+            resolve(null);
+          }, 10000);
 
-        // Handler ketika gambar berhasil dimuat
-        img.onload = () => {
-          try {
-            // Buat canvas untuk mengambil gambar
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
+          // Handler ketika gambar berhasil dimuat
+          img.onload = () => {
+            try {
+              // Buat canvas untuk mengambil gambar
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
 
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              // Gambar ke canvas
-              ctx.drawImage(img, 0, 0);
-              
-              // Konversi ke data URL
-              const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
-              
-              // Bersihkan
-              clearTimeout(timeoutId);
-              document.body.removeChild(img);
-              
-              console.log('Berhasil mengambil gambar dari kamera');
-              resolve(imageUrl);
-            } else {
-              console.error('Gagal mendapatkan context canvas');
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                // Gambar ke canvas
+                ctx.drawImage(img, 0, 0);
+                
+                // Konversi ke data URL
+                const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // Bersihkan
+                clearTimeout(timeoutId);
+                document.body.removeChild(img);
+                
+                console.log('Berhasil mengambil gambar dari kamera');
+                
+                // Simpan metode yang berhasil
+                localStorage.setItem('successful_mjpeg_method', JSON.stringify({
+                  endpoint,
+                  timestamp: Date.now()
+                }));
+                
+                resolve(imageUrl);
+              } else {
+                console.error('Gagal mendapatkan context canvas');
+                resolve(null);
+              }
+            } catch (error) {
+              console.error('Error saat memproses gambar:', error);
               resolve(null);
             }
-          } catch (error) {
-            console.error('Error saat memproses gambar:', error);
-            resolve(null);
-          }
-        };
+          };
 
-        // Handler untuk error
-        img.onerror = () => {
-          clearTimeout(timeoutId);
-          document.body.removeChild(img);
-          console.error('Gagal memuat gambar dari kamera');
+          // Handler untuk error
+          img.onerror = () => {
+            clearTimeout(timeoutId);
+            document.body.removeChild(img);
+            console.error('Gagal memuat gambar dari kamera');
+            
+            // Jika gagal, coba gunakan endpoint snapshot sebagai fallback
+            this.captureFromHttpSnapshot().then(resolve);
+          };
+
+          // Tambahkan timestamp untuk menghindari cache
+          const timestamp = Date.now();
           
-          // Jika gagal, coba gunakan endpoint snapshot sebagai fallback
-          this.captureFromHttpSnapshot().then(resolve);
-        };
-
-        // Tambahkan timestamp untuk menghindari cache
-        const timestamp = Date.now();
-        
-        // Set header Authorization menggunakan atribut crossOrigin
-        img.crossOrigin = 'use-credentials';
-        img.src = `${fullUrl}?t=${timestamp}`;
-      });
+          // PENTING: Ubah dari "use-credentials" ke "anonymous" untuk menghindari CORS issue
+          img.crossOrigin = 'anonymous';
+          
+          // Coba tambahkan credentials di URL
+          if (this.cameraConfig.username && this.cameraConfig.password) {
+            const urlWithAuth = new URL(fullUrl);
+            urlWithAuth.username = this.cameraConfig.username;
+            urlWithAuth.password = this.cameraConfig.password;
+            urlWithAuth.searchParams.append('t', timestamp.toString());
+            img.src = urlWithAuth.toString();
+            console.log('Using URL with embedded credentials (password hidden)');
+          } else {
+            img.src = `${fullUrl}?t=${timestamp}`;
+            console.log('Using URL without credentials');
+          }
+        });
+      }
     } catch (error) {
-      console.error('Error dalam captureFromStream:', error);
-      return this.captureFromHttpSnapshot(); // Fallback ke HTTP snapshot
+      console.error('Error capturing from MJPEG stream:', error);
+      this.eventEmitter.emit('error', new Error('Gagal mengambil gambar dari stream. Periksa URL dan kredensial.'));
+      return null;
     }
+  }
+  
+  // Helper untuk menghasilkan string Basic Auth  
+  private createAuthString(): string {
+    if (this.cameraConfig.username && this.cameraConfig.password) {
+      return btoa(`${this.cameraConfig.username}:${this.cameraConfig.password}`);
+    }
+    return '';
   }
   
   private async addTextToImage(imageUrl: string, text: string): Promise<string> {

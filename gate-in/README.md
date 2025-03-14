@@ -148,4 +148,74 @@ The application communicates with the backend API for:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+# Gate In - Sistem Parkir
+
+Aplikasi Gate-In untuk sistem manajemen parkir dengan kemampuan offline.
+
+## Fitur Utama
+
+- **Pendaftaran Tiket Masuk Kendaraan**
+- **Pengenalan Plat Nomor Otomatis (OCR)**
+- **Koneksi Kamera IP**
+- **Pencetakan Tiket Thermal**
+- **Sinkronisasi Database & Server**
+- **Mode Offline dengan Buffering**
+
+## Offline Mode & Ketahanan Koneksi
+
+Aplikasi ini dirancang untuk tetap berfungsi bahkan ketika koneksi server terputus.
+
+### Fitur Offline Mode:
+
+1. **Indikator Status Koneksi**:
+   - Badge koneksi di navbar menunjukkan status online/offline
+   - Menampilkan jumlah transaksi tertunda yang perlu disinkronkan
+
+2. **Banner Status Offline**:
+   - Muncul otomatis saat aplikasi kehilangan koneksi
+   - Menampilkan durasi waktu offline
+   - Tombol untuk mencoba terhubung kembali
+
+3. **Buffering Transaksi**:
+   - Menyimpan semua transaksi yang dilakukan saat offline di local storage
+   - Transaksi akan otomatis disinkronkan saat koneksi tersedia kembali
+   - Menggunakan antrian untuk memastikan urutan transaksi terjaga
+
+4. **Fallback Port**:
+   - Aplikasi akan otomatis mencoba beberapa port alternatif jika port utama tidak tersedia
+   - Port yang dicoba: 5000 (default), 5001, 3000, 8080
+   - Menggunakan strategi koneksi dengan exponential backoff
+
+## Pengaturan
+
+Untuk menjalankan aplikasi dengan port server yang berbeda, gunakan environment variable:
+
+```
+# Windows
+set REACT_APP_SOCKET_URL=http://localhost:5001 && npm start
+
+# Linux/Mac
+REACT_APP_SOCKET_URL=http://localhost:5001 npm start
+```
+
+## Kelola Server Socket
+
+Server socket dapat berjalan di port yang berbeda dengan:
+
+```
+# Windows
+set PORT=5001 && node server/dist/index.js
+
+# Linux/Mac
+PORT=5001 node server/dist/index.js
+```
+
+## Saat Offline
+
+Ketika aplikasi offline:
+1. Semua operasi dicatat di local storage
+2. UI menampilkan indikator offline dengan jumlah transaksi tertunda
+3. Koneksi akan otomatis dicoba ulang dengan interval yang meningkat
+4. Saat koneksi terhubung kembali, semua transaksi akan disinkronkan 

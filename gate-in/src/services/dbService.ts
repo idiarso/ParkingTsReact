@@ -27,158 +27,132 @@ class DBService {
   private dbConnected: boolean = false;
   private initPromise: Promise<boolean> | null = null;
   private initResolver: ((value: boolean) => void) | null = null;
+  private readonly DB_TIMEOUT = 30000; // 30 seconds timeout
   
   // Initialize the database
   async init() {
-    if (this.initialized) {
-      console.log('Database already initialized');
+    if (this.initialized && this.db) {
+      console.log('Database already initialized and connected');
       return true;
     }
-    
-    try {
-      // If we're in an Electron environment, use the electron API
-      if (window.electronAPI) {
-        console.log('Using Electron DB API');
-        // Initialization happens on the main process
-        this.initialized = true;
-        this.dbConnected = true;
-        return true;
-      } else {
+
+    // If initialization is already in progress, return the existing promise
+    if (this.initPromise) {
+      console.log('Initialization already in progress, waiting...');
+      return this.initPromise;
+    }
+
+    // Create new initialization promise
+    this.initPromise = new Promise(async (resolve) => {
+      this.initResolver = resolve;
+
+      // Set timeout
+      const timeoutId = setTimeout(() => {
+        console.error('Database initialization timed out');
+        if (this.initResolver) {
+          this.initResolver(false);
+        }
+      }, this.DB_TIMEOUT);
+
+      try {
+        if (window.electronAPI) {
+          console.log('Using Electron DB API');
+          this.initialized = true;
+          this.dbConnected = true;
+          clearTimeout(timeoutId);
+          resolve(true);
+          return;
+        }
+
         console.log('Using IndexedDB for storage');
         console.log('Browser IndexedDB support check:', !!window.indexedDB);
         
         // Explicitly log browser and version for debugging
         const userAgent = navigator.userAgent;
         console.log('Browser:', userAgent);
-        
+
         // For web-only mode, we'll use IndexedDB
         await this.initIndexedDB();
-        console.log('IndexedDB initialized successfully');
-        this.initialized = true;
-        this.dbConnected = true;
         
-        // Verify the database is actually initialized
-        if (!this.db) {
-          console.error('WARNING: Database object is null after initialization!');
-          return false;
+        if (this.db) {
+          console.log('IndexedDB initialized successfully');
+          this.initialized = true;
+          this.dbConnected = true;
+          clearTimeout(timeoutId);
+          resolve(true);
+        } else {
+          console.error('Database initialization failed: db is null');
+          clearTimeout(timeoutId);
+          resolve(false);
         }
-        
-        return true;
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+        clearTimeout(timeoutId);
+        resolve(false);
+      } finally {
+        this.initPromise = null;
+        this.initResolver = null;
       }
-    } catch (error) {
-      console.error('Failed to initialize database:', error);
-      return false;
-    }
+    });
+
+    return this.initPromise;
   }
   
   // Initialize IndexedDB for web mode
-  private async initIndexedDB() {
+  private async initIndexedDB(): Promise<void> {
     console.log('===== INISIALISASI INDEXEDDB =====');
     
-    // Cek apakah browser mendukung IndexedDB
     if (!window.indexedDB) {
-      console.error('Browser tidak mendukung IndexedDB!');
       throw new Error('Browser tidak mendukung IndexedDB');
     }
     
     return new Promise<void>((resolve, reject) => {
-      console.log(`Membuka database: ${this.dbName}, versi: ${this.dbVersion}`);
-      console.log('Browser info:', navigator.userAgent);
-      
       try {
+        console.log(`Membuka database: ${this.dbName}, versi: ${this.dbVersion}`);
+        
         const request = indexedDB.open(this.dbName, this.dbVersion);
+        let hasError = false;
         
         request.onupgradeneeded = (event) => {
           console.log('Database perlu upgrade, membuat object store');
           const db = (event.target as IDBOpenDBRequest).result;
           
-          // Log existing stores
-          console.log('Object stores yang ada:', Array.from(db.objectStoreNames));
-          
           if (!db.objectStoreNames.contains(this.storeName)) {
             console.log(`Membuat object store: ${this.storeName}`);
             const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-            
-            // Create indexes for faster searching if needed
             store.createIndex('ticketId', 'ticketId', { unique: true });
             store.createIndex('licensePlate', 'licensePlate', { unique: false });
             store.createIndex('entryTime', 'entryTime', { unique: false });
-            
-            console.log('Object store dan indeks berhasil dibuat');
-          } else {
-            console.log(`Object store ${this.storeName} sudah ada`);
           }
         };
         
         request.onsuccess = (event) => {
-          console.log('Database berhasil dibuka');
+          if (hasError) return;
+          
           this.db = (event.target as IDBOpenDBRequest).result;
+          console.log('Database berhasil dibuka');
           
-          // Set flag database sudah terinisialisasi
-          this.initialized = true;
-          this.dbConnected = true;
-          
-          // Monitor untuk error database
           this.db.onerror = (event) => {
-            console.error('Error database:', event);
+            console.error('Database error:', event);
           };
-          
-          // Log info koneksi database
-          console.log('Terhubung ke IndexedDB:', {
-            name: this.db.name,
-            version: this.db.version,
-            objectStoreNames: Array.from(this.db.objectStoreNames)
-          });
-          
-          // Verifikasi store ada
-          if (!this.db.objectStoreNames.contains(this.storeName)) {
-            console.error(`PERINGATAN: Object store ${this.storeName} tidak ditemukan!`);
-            console.log('Mencoba membuat object store...');
-            
-            // Tutup database dan buka dengan versi baru
-            this.db.close();
-            const upgradeRequest = indexedDB.open(this.dbName, this.dbVersion + 1);
-            
-            upgradeRequest.onupgradeneeded = (upgradeEvent) => {
-              const upgradeDb = (upgradeEvent.target as IDBOpenDBRequest).result;
-              if (!upgradeDb.objectStoreNames.contains(this.storeName)) {
-                const store = upgradeDb.createObjectStore(this.storeName, { keyPath: 'id' });
-                store.createIndex('ticketId', 'ticketId', { unique: true });
-                store.createIndex('licensePlate', 'licensePlate', { unique: false });
-                store.createIndex('entryTime', 'entryTime', { unique: false });
-                console.log(`Object store ${this.storeName} berhasil dibuat`);
-              }
-            };
-            
-            upgradeRequest.onsuccess = () => {
-              console.log('Database berhasil di-upgrade');
-              this.db = upgradeRequest.result;
-              resolve();
-            };
-            
-            upgradeRequest.onerror = () => {
-              console.error('Gagal upgrade database:', upgradeRequest.error);
-              reject(upgradeRequest.error);
-            };
-            
-            return;
-          }
           
           resolve();
         };
         
         request.onerror = (event) => {
+          hasError = true;
           console.error('Error membuka database:', request.error);
           reject(request.error);
         };
         
-        request.onblocked = () => {
-          console.error('Database opening blocked! Tutup tab lain dengan aplikasi ini');
-          alert('Database diblokir. Tutup tab lain dengan aplikasi ini.');
-          reject(new Error('Database diblokir'));
+        request.onblocked = (event) => {
+          hasError = true;
+          console.error('Database blocked. Close other tabs with this app open');
+          reject(new Error('Database blocked'));
         };
+        
       } catch (error) {
-        console.error('Error kritis saat inisialisasi IndexedDB:', error);
+        console.error('Critical error during IndexedDB initialization:', error);
         reject(error);
       }
     });
