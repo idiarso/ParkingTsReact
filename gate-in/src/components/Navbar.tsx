@@ -12,7 +12,8 @@ import {
   ListItemText,
   Box,
   Badge,
-  Avatar
+  Avatar,
+  Button
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -23,8 +24,10 @@ import {
   Person,
   Help,
   Receipt,
-  DeveloperBoard
+  DeveloperBoard,
+  CameraAlt
 } from '@mui/icons-material';
+import ConnectionStatus from './ConnectionStatus';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -74,6 +77,17 @@ const Navbar: React.FC = () => {
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <ConnectionStatus showLabel={true} />
+          <Box sx={{ mx: 2 }} />
+          <Button 
+            variant="contained" 
+            color="success" 
+            size="small"
+            onClick={() => navigate('/gate-in')}
+            sx={{ mr: 2 }}
+          >
+            Input Kendaraan
+          </Button>
           <Typography variant="body2" sx={{ mr: 2 }}>
             Gate: Main Entrance
           </Typography>
@@ -120,6 +134,13 @@ const Navbar: React.FC = () => {
               <DeveloperBoard fontSize="small" />
             </ListItemIcon>
             <ListItemText>OCR Testing</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={() => handleNavigate('/camera-demo')}>
+            <ListItemIcon>
+              <CameraAlt fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Captura de Cámara</ListItemText>
           </MenuItem>
           
           <Divider />

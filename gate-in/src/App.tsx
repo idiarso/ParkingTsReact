@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, Container } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import GateInDashboard from './components/Dashboard';
 import AutomatedEntryGate from './components/AutomatedEntryGate';
@@ -11,7 +11,11 @@ import Help from './components/Help/index';
 import Profile from './components/Profile/index';
 import Settings from './components/Settings/index';
 import Navbar from './components/Navbar';
+import OfflineStatusBanner from './components/OfflineStatusBanner';
+import TicketPreview from './components/TicketPreview';
+import { GateInScreen } from './components/GateInScreen';
 import { VehicleEntry } from './services/dbService';
+import CameraDemo from './components/CameraDemo';
 
 interface RecentEntry {
   id: string;
@@ -50,27 +54,21 @@ const App: React.FC = () => {
       <Router>
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
+          <Container maxWidth={false} sx={{ pt: 2 }}>
+            <OfflineStatusBanner />
+          </Container>
           <Box component="main" sx={{ flexGrow: 1 }}>
             <Routes>
               <Route path="/" element={<GateInDashboard />} />
+              <Route path="/gate-in" element={<GateInScreen />} />
               <Route path="/automated" element={<AutomatedEntryGate />} />
               <Route path="/camera-settings" element={<CameraSettings />} />
               <Route path="/ocr-test" element={<OCRTester />} />
+              <Route path="/ticket-preview" element={<TicketPreview />} />
+              <Route path="/camera-demo" element={<CameraDemo />} />
               <Route 
                 path="/recent-entries" 
-                element={
-                  <RecentEntries 
-                    entries={recentEntries.map(entry => ({
-                      id: entry.id,
-                      ticketId: entry.id,
-                      licensePlate: entry.licensePlate,
-                      vehicleType: entry.vehicleType || 'UNKNOWN',
-                      entryTime: new Date(entry.timestamp).getTime(),
-                      image: entry.imageUrl,
-                      processed: true
-                    }))} 
-                  />
-                } 
+                element={<RecentEntries entries={[]} />} 
               />
               <Route path="/help" element={<Help />} />
               <Route path="/profile" element={<Profile />} />
