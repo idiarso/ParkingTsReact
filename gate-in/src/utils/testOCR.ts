@@ -57,17 +57,16 @@ export async function testOCRSystem(): Promise<{
           blur: variation.blur
         });
 
-        // Generate preview URL
-        const imageUrl = renderToDataURL({
-          text: plate.text,
-          backgroundColor: plate.expectedColor,
-          noise: variation.noise,
-          rotation: variation.rotation,
-          blur: variation.blur
-        });
+        // Convert ImageData to data URL
+        const canvas = document.createElement('canvas');
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        const ctx = canvas.getContext('2d');
+        ctx?.putImageData(imageData, 0, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg');
 
         // Perform OCR
-        const result = await detectLicensePlate(imageData);
+        const result = await detectLicensePlate(dataUrl);
 
         // Validate results
         const errors: string[] = [];
@@ -95,7 +94,7 @@ export async function testOCRSystem(): Promise<{
           result,
           passed: errors.length === 0,
           errors,
-          imageUrl
+          imageUrl: dataUrl
         });
       } catch (error) {
         results.push({

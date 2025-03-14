@@ -20,19 +20,49 @@ export interface VehicleEntry {
 
 class DBService {
   private storeName = 'vehicle-entries';
+  private dbName = 'parking-system';
+  private dbVersion = 1;
+  private db: IDBDatabase | null = null;
+  private initialized = false;
+  private dbConnected: boolean = false;
+  private initPromise: Promise<boolean> | null = null;
+  private initResolver: ((value: boolean) => void) | null = null;
   
   // Initialize the database
   async init() {
+    if (this.initialized) {
+      console.log('Database already initialized');
+      return true;
+    }
+    
     try {
       // If we're in an Electron environment, use the electron API
       if (window.electronAPI) {
         console.log('Using Electron DB API');
         // Initialization happens on the main process
+        this.initialized = true;
+        this.dbConnected = true;
         return true;
       } else {
         console.log('Using IndexedDB for storage');
+        console.log('Browser IndexedDB support check:', !!window.indexedDB);
+        
+        // Explicitly log browser and version for debugging
+        const userAgent = navigator.userAgent;
+        console.log('Browser:', userAgent);
+        
         // For web-only mode, we'll use IndexedDB
         await this.initIndexedDB();
+        console.log('IndexedDB initialized successfully');
+        this.initialized = true;
+        this.dbConnected = true;
+        
+        // Verify the database is actually initialized
+        if (!this.db) {
+          console.error('WARNING: Database object is null after initialization!');
+          return false;
+        }
+        
         return true;
       }
     } catch (error) {
@@ -43,43 +73,183 @@ class DBService {
   
   // Initialize IndexedDB for web mode
   private async initIndexedDB() {
+    console.log('===== INISIALISASI INDEXEDDB =====');
+    
+    // Cek apakah browser mendukung IndexedDB
+    if (!window.indexedDB) {
+      console.error('Browser tidak mendukung IndexedDB!');
+      throw new Error('Browser tidak mendukung IndexedDB');
+    }
+    
     return new Promise<void>((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
+      console.log(`Membuka database: ${this.dbName}, versi: ${this.dbVersion}`);
+      console.log('Browser info:', navigator.userAgent);
       
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName, { keyPath: 'id' });
-        }
-      };
-      
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      try {
+        const request = indexedDB.open(this.dbName, this.dbVersion);
+        
+        request.onupgradeneeded = (event) => {
+          console.log('Database perlu upgrade, membuat object store');
+          const db = (event.target as IDBOpenDBRequest).result;
+          
+          // Log existing stores
+          console.log('Object stores yang ada:', Array.from(db.objectStoreNames));
+          
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            console.log(`Membuat object store: ${this.storeName}`);
+            const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
+            
+            // Create indexes for faster searching if needed
+            store.createIndex('ticketId', 'ticketId', { unique: true });
+            store.createIndex('licensePlate', 'licensePlate', { unique: false });
+            store.createIndex('entryTime', 'entryTime', { unique: false });
+            
+            console.log('Object store dan indeks berhasil dibuat');
+          } else {
+            console.log(`Object store ${this.storeName} sudah ada`);
+          }
+        };
+        
+        request.onsuccess = (event) => {
+          console.log('Database berhasil dibuka');
+          this.db = (event.target as IDBOpenDBRequest).result;
+          
+          // Set flag database sudah terinisialisasi
+          this.initialized = true;
+          this.dbConnected = true;
+          
+          // Monitor untuk error database
+          this.db.onerror = (event) => {
+            console.error('Error database:', event);
+          };
+          
+          // Log info koneksi database
+          console.log('Terhubung ke IndexedDB:', {
+            name: this.db.name,
+            version: this.db.version,
+            objectStoreNames: Array.from(this.db.objectStoreNames)
+          });
+          
+          // Verifikasi store ada
+          if (!this.db.objectStoreNames.contains(this.storeName)) {
+            console.error(`PERINGATAN: Object store ${this.storeName} tidak ditemukan!`);
+            console.log('Mencoba membuat object store...');
+            
+            // Tutup database dan buka dengan versi baru
+            this.db.close();
+            const upgradeRequest = indexedDB.open(this.dbName, this.dbVersion + 1);
+            
+            upgradeRequest.onupgradeneeded = (upgradeEvent) => {
+              const upgradeDb = (upgradeEvent.target as IDBOpenDBRequest).result;
+              if (!upgradeDb.objectStoreNames.contains(this.storeName)) {
+                const store = upgradeDb.createObjectStore(this.storeName, { keyPath: 'id' });
+                store.createIndex('ticketId', 'ticketId', { unique: true });
+                store.createIndex('licensePlate', 'licensePlate', { unique: false });
+                store.createIndex('entryTime', 'entryTime', { unique: false });
+                console.log(`Object store ${this.storeName} berhasil dibuat`);
+              }
+            };
+            
+            upgradeRequest.onsuccess = () => {
+              console.log('Database berhasil di-upgrade');
+              this.db = upgradeRequest.result;
+              resolve();
+            };
+            
+            upgradeRequest.onerror = () => {
+              console.error('Gagal upgrade database:', upgradeRequest.error);
+              reject(upgradeRequest.error);
+            };
+            
+            return;
+          }
+          
+          resolve();
+        };
+        
+        request.onerror = (event) => {
+          console.error('Error membuka database:', request.error);
+          reject(request.error);
+        };
+        
+        request.onblocked = () => {
+          console.error('Database opening blocked! Tutup tab lain dengan aplikasi ini');
+          alert('Database diblokir. Tutup tab lain dengan aplikasi ini.');
+          reject(new Error('Database diblokir'));
+        };
+      } catch (error) {
+        console.error('Error kritis saat inisialisasi IndexedDB:', error);
+        reject(error);
+      }
     });
   }
   
   // Add a new vehicle entry
   async addVehicleEntry(entry: Omit<VehicleEntry, 'id'>): Promise<VehicleEntry> {
+    console.log('===== MENYIMPAN DATA KENDARAAN =====');
+    console.log('Status database:', this.initialized ? 'TERINISIALISASI' : 'BELUM TERINISIALISASI');
+
+    if (!this.initialized) {
+      console.log('Database belum terinisialisasi, mencoba inisialisasi...');
+      const initResult = await this.init();
+      console.log('Hasil inisialisasi:', initResult ? 'BERHASIL' : 'GAGAL');
+      
+      if (!initResult) {
+        console.error('GAGAL menginisialisasi database!');
+        throw new Error('Tidak dapat menginisialisasi database');
+      }
+    }
+    
+    if (!this.db) {
+      console.error('KESALAHAN: this.db masih null meskipun this.initialized adalah true');
+      await this.forceInitialize();
+      
+      if (!this.db) {
+        console.error('GAGAL: Database masih null setelah force initialize');
+        throw new Error('Database tidak tersedia');
+      }
+    }
+    
     const newEntry: VehicleEntry = {
       id: generateId(),
       ...entry
     };
     
     try {
+      console.log('Menambahkan entri kendaraan:', newEntry);
+      
       if (window.electronAPI) {
         await window.electronAPI.put(this.storeName, newEntry);
+        console.log('Entry ditambahkan via ElectronAPI');
       } else {
         await this.addEntryToIndexedDB(newEntry);
+        console.log('Entry ditambahkan via IndexedDB');
       }
+      
+      // Verifikasi data telah tersimpan
+      let savedEntry;
+      try {
+        savedEntry = await this.getVehicleEntry(newEntry.id);
+        console.log('Verifikasi penyimpanan:', savedEntry ? 'DATA DITEMUKAN' : 'DATA TIDAK DITEMUKAN');
+      } catch (verifyError) {
+        console.error('Error saat verifikasi penyimpanan:', verifyError);
+      }
+      
+      console.log('Entry ditambahkan dengan sukses, ID:', newEntry.id);
       return newEntry;
     } catch (error) {
-      console.error('Failed to add vehicle entry:', error);
+      console.error('GAGAL menambahkan vehicle entry:', error);
       throw error;
     }
   }
   
   // Get all vehicle entries
   async getVehicleEntries(): Promise<VehicleEntry[]> {
+    if (!this.initialized) {
+      console.log('Database not initialized, initializing now...');
+      await this.init();
+    }
+    
     try {
       if (window.electronAPI) {
         return await window.electronAPI.getAll(this.storeName) || [];
@@ -94,6 +264,11 @@ class DBService {
   
   // Get vehicle entry by ID
   async getVehicleEntry(id: string): Promise<VehicleEntry | null> {
+    if (!this.initialized) {
+      console.log('Database not initialized, initializing now...');
+      await this.init();
+    }
+    
     try {
       if (window.electronAPI) {
         return await window.electronAPI.get(this.storeName, id);
@@ -121,58 +296,194 @@ class DBService {
   
   // Private method to add entry to IndexedDB
   private addEntryToIndexedDB(entry: VehicleEntry): Promise<void> {
+    console.log('===== MENAMBAHKAN DATA KE INDEXEDDB =====');
+    
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
-      
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        const transaction = db.transaction([this.storeName], 'readwrite');
+      if (!this.db) {
+        console.error('Database belum terinisialisasi untuk addEntryToIndexedDB');
+        
+        // Coba inisialisasi ulang
+        this.init().then(() => {
+          if (this.db) {
+            console.log('Database berhasil diinisialisasi ulang, mencoba simpan data lagi...');
+            this.addEntryToIndexedDB(entry).then(resolve).catch(reject);
+          } else {
+            reject(new Error('Gagal menginisialisasi database'));
+          }
+        }).catch(reject);
+        
+        return;
+      }
+
+      try {
+        console.log('Menambahkan data ke IndexedDB:', entry);
+        
+        // Cek apakah object store ada
+        if (!this.db.objectStoreNames.contains(this.storeName)) {
+          console.error(`Object store ${this.storeName} tidak ditemukan!`);
+          reject(new Error(`Object store ${this.storeName} tidak ditemukan`));
+          return;
+        }
+        
+        // Buat transaksi baru untuk operasi ini
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
+        
+        transaction.onabort = (event) => {
+          console.error('Transaksi dibatalkan:', transaction.error);
+          reject(transaction.error);
+        };
+        
+        transaction.onerror = (event) => {
+          console.error('Error transaksi:', transaction.error);
+          reject(transaction.error);
+        };
+        
+        transaction.oncomplete = () => {
+          console.log('Transaksi add berhasil diselesaikan');
+          resolve();
+        };
+        
         const store = transaction.objectStore(this.storeName);
         
-        const addRequest = store.add(entry);
-        addRequest.onsuccess = () => resolve();
-        addRequest.onerror = () => reject(addRequest.error);
-      };
-      
-      request.onerror = () => reject(request.error);
+        // If an entry with the same ID exists, this will overwrite it
+        const addRequest = store.put(entry);
+        
+        addRequest.onsuccess = () => {
+          console.log('Data berhasil ditambahkan ke IndexedDB dengan ID:', addRequest.result);
+          
+          // Coba verifikasi data telah tersimpan
+          const checkRequest = store.get(entry.id);
+          
+          checkRequest.onsuccess = () => {
+            const storedEntry = checkRequest.result;
+            if (storedEntry) {
+              console.log('Verifikasi penyimpanan: Data ditemukan dalam database');
+            } else {
+              console.warn('Verifikasi penyimpanan: Data TIDAK ditemukan dalam database meskipun add berhasil!');
+            }
+          };
+          
+          checkRequest.onerror = () => {
+            console.warn('Gagal memverifikasi data tersimpan:', checkRequest.error);
+          };
+        };
+        
+        addRequest.onerror = () => {
+          console.error('Error menambahkan data ke IndexedDB:', addRequest.error);
+          
+          // Cek apakah error karena constraint violation (unique index)
+          if (addRequest.error && addRequest.error.name === 'ConstraintError') {
+            console.error('Error ini adalah konflik duplikat entri');
+          }
+          
+          reject(addRequest.error);
+        };
+      } catch (error) {
+        console.error('Error dalam addEntryToIndexedDB:', error);
+        reject(error);
+      }
     });
   }
   
   // Private method to get all entries from IndexedDB
   private getAllEntriesFromIndexedDB(): Promise<VehicleEntry[]> {
+    console.log('===== MENGAMBIL SEMUA DATA DARI INDEXEDDB =====');
+    
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
+      if (!this.db) {
+        console.error('Database belum terinisialisasi untuk getAllEntriesFromIndexedDB');
+        
+        // Coba inisialisasi ulang
+        this.init().then(() => {
+          if (this.db) {
+            console.log('Database berhasil diinisialisasi ulang, mencoba mengambil data lagi...');
+            this.getAllEntriesFromIndexedDB().then(resolve).catch(reject);
+          } else {
+            reject(new Error('Gagal menginisialisasi database'));
+          }
+        }).catch(reject);
+        
+        return;
+      }
       
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        const transaction = db.transaction([this.storeName], 'readonly');
+      try {
+        console.log('Mengambil semua data dari IndexedDB...');
+        
+        // Cek apakah object store ada
+        if (!this.db.objectStoreNames.contains(this.storeName)) {
+          console.error(`Object store ${this.storeName} tidak ditemukan!`);
+          
+          // Kembalikan array kosong sebagai fallback
+          console.warn('Mengembalikan array kosong karena object store tidak ditemukan');
+          resolve([]);
+          return;
+        }
+        
+        const transaction = this.db.transaction([this.storeName], 'readonly');
         const store = transaction.objectStore(this.storeName);
         
         const getAllRequest = store.getAll();
-        getAllRequest.onsuccess = () => resolve(getAllRequest.result);
-        getAllRequest.onerror = () => reject(getAllRequest.error);
-      };
-      
-      request.onerror = () => reject(request.error);
+        
+        getAllRequest.onsuccess = () => {
+          const entries = getAllRequest.result;
+          console.log(`Berhasil mengambil ${entries.length} entri dari IndexedDB`);
+          
+          // Log beberapa entri untuk debugging
+          if (entries.length > 0) {
+            console.log('Contoh entri pertama:', entries[0]);
+          }
+          
+          resolve(entries);
+        };
+        
+        getAllRequest.onerror = () => {
+          console.error('Error saat mengambil data dari IndexedDB:', getAllRequest.error);
+          reject(getAllRequest.error);
+        };
+        
+        transaction.oncomplete = () => {
+          console.log('Transaksi getAll selesai');
+        };
+        
+        transaction.onerror = () => {
+          console.error('Error transaksi getAll:', transaction.error);
+          reject(transaction.error);
+        };
+      } catch (error) {
+        console.error('Error dalam getAllEntriesFromIndexedDB:', error);
+        reject(error);
+      }
     });
   }
   
   // Private method to get entry by ID from IndexedDB
   private getEntryFromIndexedDB(id: string): Promise<VehicleEntry | null> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
+      if (!this.db) {
+        console.error('Database not initialized for getEntryFromIndexedDB');
+        return reject(new Error('Database not initialized'));
+      }
       
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        const transaction = db.transaction([this.storeName], 'readonly');
+      try {
+        console.log(`Getting entry with ID ${id} from IndexedDB`);
+        const transaction = this.db.transaction([this.storeName], 'readonly');
         const store = transaction.objectStore(this.storeName);
         
         const getRequest = store.get(id);
-        getRequest.onsuccess = () => resolve(getRequest.result || null);
-        getRequest.onerror = () => reject(getRequest.error);
-      };
-      
-      request.onerror = () => reject(request.error);
+        
+        getRequest.onsuccess = () => {
+          console.log(`Entry retrieval result:`, getRequest.result ? 'Found' : 'Not found');
+          resolve(getRequest.result || null);
+        };
+        
+        getRequest.onerror = () => {
+          console.error('Error getting entry from IndexedDB:', getRequest.error);
+          reject(getRequest.error);
+        };
+      } catch (error) {
+        console.error(`Error in getEntryFromIndexedDB for ID ${id}:`, error);
+        reject(error);
+      }
     });
   }
 
@@ -215,19 +526,40 @@ class DBService {
   // Private method to delete entry from IndexedDB
   private deleteEntryFromIndexedDB(id: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
+      if (!this.db) {
+        console.error('Database not initialized for deleteEntryFromIndexedDB');
+        return reject(new Error('Database not initialized'));
+      }
       
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        const transaction = db.transaction([this.storeName], 'readwrite');
+      try {
+        console.log(`Deleting entry with ID ${id} from IndexedDB`);
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
         const store = transaction.objectStore(this.storeName);
         
         const deleteRequest = store.delete(id);
-        deleteRequest.onsuccess = () => resolve();
-        deleteRequest.onerror = () => reject(deleteRequest.error);
-      };
-      
-      request.onerror = () => reject(request.error);
+        
+        deleteRequest.onsuccess = () => {
+          console.log(`Entry with ID ${id} deleted successfully`);
+          resolve();
+        };
+        
+        deleteRequest.onerror = () => {
+          console.error('Error deleting entry from IndexedDB:', deleteRequest.error);
+          reject(deleteRequest.error);
+        };
+        
+        transaction.oncomplete = () => {
+          console.log('Delete transaction completed');
+        };
+        
+        transaction.onerror = () => {
+          console.error('Delete transaction error:', transaction.error);
+          reject(transaction.error);
+        };
+      } catch (error) {
+        console.error(`Error in deleteEntryFromIndexedDB for ID ${id}:`, error);
+        reject(error);
+      }
     });
   }
 
@@ -255,29 +587,110 @@ class DBService {
   // Clear IndexedDB store
   private async clearIndexedDB(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('parking-system', 1);
+      if (!this.db) {
+        console.error('Database not initialized for clearIndexedDB');
+        return reject(new Error('Database not initialized'));
+      }
       
-      request.onerror = () => reject(request.error);
-      
-      request.onsuccess = () => {
-        const db = request.result;
-        try {
-          const transaction = db.transaction(this.storeName, 'readwrite');
-          const store = transaction.objectStore(this.storeName);
-          
-          const clearRequest = store.clear();
-          
-          clearRequest.onsuccess = () => resolve();
-          clearRequest.onerror = () => reject(clearRequest.error);
-          
-          // Ensure transaction completes
-          transaction.oncomplete = () => resolve();
-          transaction.onerror = () => reject(transaction.error);
-        } catch (error) {
-          reject(error);
-        }
-      };
+      try {
+        console.log('Clearing all entries from IndexedDB');
+        const transaction = this.db.transaction(this.storeName, 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        
+        const clearRequest = store.clear();
+        
+        clearRequest.onsuccess = () => {
+          console.log('All entries cleared successfully');
+          resolve();
+        };
+        
+        clearRequest.onerror = () => {
+          console.error('Error clearing entries from IndexedDB:', clearRequest.error);
+          reject(clearRequest.error);
+        };
+        
+        transaction.oncomplete = () => {
+          console.log('Clear transaction completed');
+        };
+        
+        transaction.onerror = () => {
+          console.error('Clear transaction error:', transaction.error);
+          reject(transaction.error);
+        };
+      } catch (error) {
+        console.error('Error in clearIndexedDB:', error);
+        reject(error);
+      }
     });
+  }
+
+  // Mendapatkan status database saat ini
+  getDatabaseStatus(): { initialized: boolean; dbConnected: boolean } {
+    return {
+      initialized: this.initialized,
+      dbConnected: this.dbConnected
+    };
+  }
+  
+  // Memaksa inisialisasi ulang database
+  async forceInitialize(): Promise<boolean> {
+    console.log('Memulai force initialize database...');
+    
+    // Reset status
+    this.initialized = false;
+    this.dbConnected = false;
+    this.db = null;
+    
+    try {
+      // Coba inisialisasi ulang
+      const result = await this.init();
+      console.log('Force initialize selesai dengan hasil:', result);
+      return result;
+    } catch (error) {
+      console.error('Error saat force initialize database:', error);
+      return false;
+    }
+  }
+  
+  // Tes database dengan menambahkan dan mengambil data tes
+  async testDatabase(): Promise<boolean> {
+    console.log('Memulai tes database...');
+    
+    if (!this.db || !this.initialized) {
+      console.error('Database belum diinisialisasi');
+      return false;
+    }
+    
+    try {
+      // Buat data tes
+      const testData = {
+        ticketId: `TEST-${Date.now()}`,
+        entryTime: Date.now(),
+        vehicleType: 'TEST',
+        licensePlate: 'TEST-123',
+        imageUrl: 'test-image.jpg',
+        processed: false
+      };
+      
+      // Simpan data tes
+      console.log('Menyimpan data tes:', testData);
+      await this.addVehicleEntry(testData);
+      
+      // Ambil data tes
+      console.log('Mengambil data tes...');
+      const entries = await this.getVehicleEntries();
+      console.log('Data yang diambil:', entries);
+      
+      // Cek apakah data tes ada
+      const testEntry = entries.find(entry => entry.ticketId === testData.ticketId);
+      const success = !!testEntry;
+      
+      console.log('Hasil tes database:', success ? 'BERHASIL' : 'GAGAL');
+      return success;
+    } catch (error) {
+      console.error('Error saat tes database:', error);
+      return false;
+    }
   }
 }
 

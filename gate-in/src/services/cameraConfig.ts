@@ -127,6 +127,15 @@ class CameraConfigService {
       return false;
     }
   }
+  
+  async testCamera(config: IPCameraConfig): Promise<boolean> {
+    try {
+      return await this.testConnection(config);
+    } catch (error) {
+      console.error('Error testing camera:', error);
+      return false;
+    }
+  }
 }
 
 export const cameraConfigService = new CameraConfigService();

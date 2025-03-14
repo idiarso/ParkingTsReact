@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import {
   Box,
@@ -19,6 +19,7 @@ import { styled } from '@mui/material/styles';
 import { PhotoCamera, Videocam, VideocamOff, SettingsBackupRestore } from '@mui/icons-material';
 import { detectLicensePlate } from '../services/ocr';
 import { cameraConfigService, type IPCameraConfig } from '../services/cameraConfig';
+import { PlateColor } from '../utils/colorDetection';
 
 interface OCRResult {
   text: string;
@@ -136,11 +137,11 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
   const scanIntervalRef = useRef<NodeJS.Timeout>();
   const webcamRef = useRef<Webcam>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCamera, setSelectedCamera] = useState<string>(initialCamera);
+  const [selectedCamera] = useState<string>(initialCamera);
   const [availableCameras, setAvailableCameras] = useState<IPCameraConfig[]>([]);
   const [ipCameraUrl, setIpCameraUrl] = useState<string>('');
 
-  const processImage = async (imageSrc: string): Promise<boolean> => {
+  const processImage = useCallback(async (imageSrc: string): Promise<boolean> => {
     if (!isCameraActive) return false;
     
     setIsProcessing(true);
@@ -166,7 +167,7 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [onPlateDetected, isCameraActive]);
 
   // Load camera configurations
   useEffect(() => {
@@ -202,7 +203,7 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
     };
 
     getDevices();
-  }, []);
+  }, [selectedDeviceId]);
 
   // Set up auto-scanning
   useEffect(() => {

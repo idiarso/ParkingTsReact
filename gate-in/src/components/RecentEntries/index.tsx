@@ -15,51 +15,20 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
+import { VehicleEntry } from '../../services/dbService';
 
-interface VehicleEntry {
-  id: string;
-  plateNumber: string;
-  entryTime: string;
-  vehicleType: string;
-  status: 'success' | 'pending' | 'failed';
-  gate: string;
+interface Props {
+  entries: VehicleEntry[];
 }
 
-const RecentEntries: React.FC = () => {
-  const [entries, setEntries] = useState<VehicleEntry[]>([]);
+export const RecentEntries: React.FC<Props> = ({ entries }) => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    fetchRecentEntries();
+    setLoading(false);
   }, []);
-
-  const fetchRecentEntries = async () => {
-    try {
-      // TODO: Replace with actual API call
-      const mockData: VehicleEntry[] = [
-        {
-          id: '1',
-          plateNumber: 'B 1234 CD',
-          entryTime: new Date().toISOString(),
-          vehicleType: 'Car',
-          status: 'success',
-          gate: 'Main Entrance'
-        },
-        // Add more mock data as needed
-      ];
-      
-      setEntries(mockData);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch recent entries');
-      console.error('Error fetching entries:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -68,19 +37,6 @@ const RecentEntries: React.FC = () => {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const getStatusColor = (status: VehicleEntry['status']) => {
-    switch (status) {
-      case 'success':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'failed':
-        return 'error';
-      default:
-        return 'default';
-    }
   };
 
   if (loading) {
@@ -97,21 +53,15 @@ const RecentEntries: React.FC = () => {
         Recent Entries
       </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer sx={{ maxHeight: 440 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Plate Number</TableCell>
+                <TableCell>License Plate</TableCell>
                 <TableCell>Entry Time</TableCell>
                 <TableCell>Vehicle Type</TableCell>
-                <TableCell>Gate</TableCell>
+                <TableCell>Ticket ID</TableCell>
                 <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
@@ -120,16 +70,16 @@ const RecentEntries: React.FC = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry) => (
                   <TableRow key={entry.id} hover>
-                    <TableCell>{entry.plateNumber}</TableCell>
+                    <TableCell>{entry.licensePlate}</TableCell>
                     <TableCell>
                       {format(new Date(entry.entryTime), 'dd/MM/yyyy HH:mm:ss')}
                     </TableCell>
                     <TableCell>{entry.vehicleType}</TableCell>
-                    <TableCell>{entry.gate}</TableCell>
+                    <TableCell>{entry.ticketId}</TableCell>
                     <TableCell>
                       <Chip
-                        label={entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-                        color={getStatusColor(entry.status)}
+                        label={entry.processed ? 'Processed' : 'Pending'}
+                        color={entry.processed ? 'success' : 'warning'}
                         size="small"
                       />
                     </TableCell>
@@ -152,5 +102,4 @@ const RecentEntries: React.FC = () => {
   );
 };
 
-export { RecentEntries };
 export default RecentEntries; 

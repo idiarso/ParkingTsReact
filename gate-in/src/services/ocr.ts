@@ -2,6 +2,8 @@ import { createWorker } from 'tesseract.js';
 import { validateLicensePlate } from '../utils/validation';
 import { OCRResult } from '../types/ocr';
 
+export type { OCRResult };
+
 // Simplified Tesseract types
 interface TesseractWorker {
   loadLanguage(lang: string): Promise<void>;

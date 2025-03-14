@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import GateInDashboard from './components/Dashboard';
 import AutomatedEntryGate from './components/AutomatedEntryGate';
-import { CameraSettings } from './components/CameraSettings';
+import CameraSettings from './components/CameraSettings';
 import { OCRTester } from './components/OCRTester';
 import { RecentEntries } from './components/RecentEntries';
 import Help from './components/Help/index';
 import Profile from './components/Profile/index';
 import Settings from './components/Settings/index';
 import Navbar from './components/Navbar';
+import { VehicleEntry } from './services/dbService';
+
+interface RecentEntry {
+  id: string;
+  licensePlate: string;
+  timestamp: string;
+  imageUrl?: string;
+  vehicleType?: string;
+}
 
 // Create theme instance
 const theme = createTheme({
@@ -33,7 +42,7 @@ const theme = createTheme({
 
 const App: React.FC = () => {
   // Add state for recent entries
-  const [recentEntries] = useState<any[]>([]);
+  const [recentEntries] = useState<RecentEntry[]>([]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -47,7 +56,22 @@ const App: React.FC = () => {
               <Route path="/automated" element={<AutomatedEntryGate />} />
               <Route path="/camera-settings" element={<CameraSettings />} />
               <Route path="/ocr-test" element={<OCRTester />} />
-              <Route path="/recent-entries" element={<RecentEntries entries={recentEntries} />} />
+              <Route 
+                path="/recent-entries" 
+                element={
+                  <RecentEntries 
+                    entries={recentEntries.map(entry => ({
+                      id: entry.id,
+                      ticketId: entry.id,
+                      licensePlate: entry.licensePlate,
+                      vehicleType: entry.vehicleType || 'UNKNOWN',
+                      entryTime: new Date(entry.timestamp).getTime(),
+                      image: entry.imageUrl,
+                      processed: true
+                    }))} 
+                  />
+                } 
+              />
               <Route path="/help" element={<Help />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />

@@ -17,10 +17,14 @@ import {
   Tooltip,
   ToggleButton,
   ToggleButtonGroup,
+  IconButton,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { PhotoCamera, Edit } from '@mui/icons-material';
-import { parkingApi, VehicleEntry } from '../services/api';
+import { parkingApi, VehicleEntry as ApiVehicleEntry } from '../services/api';
+import { VehicleEntry as DbVehicleEntry } from '../services/dbService';
 import { validateLicensePlate, formatLicensePlate } from '../utils/validation';
 import { RecentEntries } from './RecentEntries';
 import { useKeyboardShortcuts } from '../utils/shortcuts';
@@ -52,7 +56,7 @@ export const GateInScreen: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentEntries, setRecentEntries] = useState<VehicleEntry[]>([]);
+  const [recentEntries, setRecentEntries] = useState<ApiVehicleEntry[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<'manual' | 'camera'>('manual');
   const plateInputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +72,7 @@ export const GateInScreen: React.FC = () => {
     socketService.updateGateStatus('entry-gate-1', 'closed');
   }, []);
 
-  const updateRecentEntries = (newEntry: VehicleEntry) => {
+  const updateRecentEntries = (newEntry: ApiVehicleEntry) => {
     const updatedEntries = [newEntry, ...recentEntries].slice(0, MAX_RECENT_ENTRIES);
     setRecentEntries(updatedEntries);
     localStorage.setItem('recentEntries', JSON.stringify(updatedEntries));
@@ -110,7 +114,7 @@ export const GateInScreen: React.FC = () => {
     setValidationError(null);
     
     try {
-      const entry: VehicleEntry = {
+      const entry: ApiVehicleEntry = {
         plateNumber: plateNumber.toUpperCase(),
         vehicleType,
         entryTime: new Date().toISOString(),
@@ -166,6 +170,19 @@ export const GateInScreen: React.FC = () => {
     },
     onVehicleType: setVehicleType,
   });
+
+  // Convert API VehicleEntry to DB VehicleEntry format for RecentEntries component
+  const convertToDbFormat = (entries: ApiVehicleEntry[]): DbVehicleEntry[] => {
+    return entries.map(entry => ({
+      id: entry.entryTime, // Use entryTime as a unique ID
+      ticketId: `TICKET-${entry.entryTime}`,
+      licensePlate: entry.plateNumber,
+      vehicleType: entry.vehicleType,
+      entryTime: new Date(entry.entryTime).getTime(),
+      processed: true,
+      image: undefined
+    }));
+  };
 
   return (
     <Container maxWidth="md">
@@ -255,7 +272,7 @@ export const GateInScreen: React.FC = () => {
           </StyledPaper>
         )}
         
-        <RecentEntries entries={recentEntries} />
+        <RecentEntries entries={convertToDbFormat(recentEntries)} />
         
         <Snackbar
           open={showSuccess}

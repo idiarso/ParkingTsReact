@@ -34,84 +34,91 @@ import {
   Refresh,
   Add
 } from '@mui/icons-material';
+import { VehicleEntry } from '../../services/dbService';
 
-interface VehicleEntry {
-  plateNumber: string;
-  vehicleType: string;
-  entryTime: string;
+// Extended interface for dashboard-specific fields
+interface ExtendedVehicleEntry extends Partial<VehicleEntry> {
   driverName?: string;
   driverPhone?: string;
 }
 
 // Mock data for recent entries
-const mockRecentEntries: VehicleEntry[] = [
+const mockRecentEntries: ExtendedVehicleEntry[] = [
   {
-    plateNumber: 'B 1234 XYZ',
-    vehicleType: 'Mobil',
-    entryTime: '2024-03-12 09:30:00',
+    id: '1',
+    ticketId: 'T-20230601-001',
+    licensePlate: 'B 1234 XYZ',
+    vehicleType: 'CAR',
+    entryTime: Date.now() - 3600000, // 1 hour ago
+    processed: true,
     driverName: 'Budi Santoso',
     driverPhone: '081234567890'
   },
   {
-    plateNumber: 'D 5678 ABC',
-    vehicleType: 'Motor',
-    entryTime: '2024-03-12 09:15:00'
+    id: '2',
+    ticketId: 'T-20230601-002',
+    licensePlate: 'D 5678 ABC',
+    vehicleType: 'MOTORCYCLE',
+    entryTime: Date.now() - 7200000, // 2 hours ago
+    processed: true
+  },
+  {
+    id: '3',
+    ticketId: 'T-20230601-003',
+    licensePlate: 'F 9012 DEF',
+    vehicleType: 'CAR',
+    entryTime: Date.now() - 10800000, // 3 hours ago
+    processed: true
   }
 ];
 
 const GateInDashboard: React.FC = () => {
   const [plateNumber, setPlateNumber] = useState('');
-  const [vehicleType, setVehicleType] = useState('');
+  const [vehicleType, setVehicleType] = useState('CAR');
   const [driverName, setDriverName] = useState('');
   const [driverPhone, setDriverPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTicket, setShowTicket] = useState(false);
-  const [recentEntries, setRecentEntries] = useState<VehicleEntry[]>(mockRecentEntries);
+  const [recentEntries, setRecentEntries] = useState<ExtendedVehicleEntry[]>(mockRecentEntries);
   const [showCamera, setShowCamera] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    
+    if (!plateNumber.trim()) {
+      setError('Nomor plat kendaraan harus diisi');
+      return;
+    }
+    
     setIsProcessing(true);
-
+    setError(null);
+    
     try {
-      if (!plateNumber.trim() || !vehicleType) {
-        throw new Error('Nomor plat dan jenis kendaraan harus diisi');
-      }
-
-      // Validate Indonesian plate number format
-      const plateRegex = /^[A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,3}$/;
-      if (!plateRegex.test(plateNumber.trim())) {
-        throw new Error('Format nomor plat tidak valid (Contoh: B 1234 XYZ)');
-      }
-
-      // Validate phone number if provided
-      if (driverPhone && !/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(driverPhone)) {
-        throw new Error('Nomor telepon tidak valid (Contoh: 081234567890)');
-      }
-
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const newEntry: VehicleEntry = {
-        plateNumber: plateNumber.trim().toUpperCase(),
+      const newEntry: ExtendedVehicleEntry = {
+        id: `${Date.now()}`,
+        ticketId: `T-${Date.now()}`,
+        licensePlate: plateNumber.trim().toUpperCase(),
         vehicleType,
-        entryTime: new Date().toISOString(),
-        ...(driverName && { driverName }),
-        ...(driverPhone && { driverPhone })
+        entryTime: Date.now(),
+        processed: true,
+        driverName: driverName || undefined,
+        driverPhone: driverPhone || undefined
       };
 
       setRecentEntries(prev => [newEntry, ...prev]);
       setShowTicket(true);
-
+      
       // Reset form
       setPlateNumber('');
-      setVehicleType('');
       setDriverName('');
       setDriverPhone('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      
+    } catch (error) {
+      setError('Gagal memproses kendaraan masuk');
     } finally {
       setIsProcessing(false);
     }
@@ -179,9 +186,9 @@ const GateInDashboard: React.FC = () => {
                   onChange={(e) => setVehicleType(e.target.value)}
                   disabled={isProcessing}
                 >
-                  <MenuItem value="Mobil">Mobil</MenuItem>
-                  <MenuItem value="Motor">Motor</MenuItem>
-                  <MenuItem value="Truk">Truk</MenuItem>
+                  <MenuItem value="CAR">CAR</MenuItem>
+                  <MenuItem value="MOTORCYCLE">MOTORCYCLE</MenuItem>
+                  <MenuItem value="TRUCK">TRUCK</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -247,9 +254,9 @@ const GateInDashboard: React.FC = () => {
             <TableBody>
               {recentEntries.map((entry, index) => (
                 <TableRow key={index}>
-                  <TableCell>{entry.plateNumber}</TableCell>
-                  <TableCell>{entry.vehicleType}</TableCell>
-                  <TableCell>{new Date(entry.entryTime).toLocaleString('id-ID')}</TableCell>
+                  <TableCell>{entry.licensePlate || '-'}</TableCell>
+                  <TableCell>{entry.vehicleType || '-'}</TableCell>
+                  <TableCell>{entry.entryTime ? new Date(entry.entryTime).toLocaleString('id-ID') : '-'}</TableCell>
                   <TableCell>{entry.driverName || '-'}</TableCell>
                   <TableCell>{entry.driverPhone || '-'}</TableCell>
                 </TableRow>

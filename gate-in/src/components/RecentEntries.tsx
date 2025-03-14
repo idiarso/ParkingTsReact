@@ -9,7 +9,7 @@ import {
   Box,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { VehicleEntry } from '../services/api';
+import { VehicleEntry } from '../services/dbService';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(2),
@@ -25,8 +25,8 @@ interface RecentEntriesProps {
 }
 
 export const RecentEntries: React.FC<RecentEntriesProps> = ({ entries }) => {
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString);
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
     return date.toLocaleTimeString();
   };
 
@@ -42,12 +42,12 @@ export const RecentEntries: React.FC<RecentEntriesProps> = ({ entries }) => {
           </ListItem>
         ) : (
           entries.map((entry) => (
-            <ListItem key={entry.entryTime}>
+            <ListItem key={entry.id}>
               <ListItemText
                 primary={
                   <Box display="flex" alignItems="center">
                     <Typography variant="body1" component="span">
-                      {entry.plateNumber}
+                      {entry.licensePlate}
                     </Typography>
                     <StyledChip
                       label={entry.vehicleType}
