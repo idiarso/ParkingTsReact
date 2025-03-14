@@ -2,7 +2,13 @@
   "scripts": {
     "dev": "cd server && npm run dev",
     "start": "cd server && npm start",
-    "build": "cd server && npm run build"
+    "build": "cd server && npm run build",
+    "start:server": "cd server && npm start",
+    "start:admin": "cd admin && npm start",
+    "start:gate-in": "cd gate-in && npm start",
+    "start:gate-out": "cd gate-out && npm start",
+    "start:all": "concurrently \"npm run start:server\" \"npm run start:admin\" \"npm run start:gate-in\" \"npm run start:gate-out\"",
+    "install:all": "npm install && cd server && npm install && cd ../admin && npm install && cd ../gate-in && npm install && cd ../gate-out && npm install"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -14,6 +20,7 @@
     "@types/react": "^19.0.10",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-webcam": "^1.1.0",
+    "concurrently": "^8.2.2",
     "date-fns": "^2.30.0",
     "idb": "^8.0.2",
     "jspdf": "^3.0.0",

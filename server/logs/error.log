@@ -190,3 +190,12 @@
 {"level":"error","message":"[500] Failed to fetch users","timestamp":"2025-03-12T21:42:48.979Z"}
 {"level":"error","message":"Error fetching users: Connection \"default\" was not found.","stack":"ConnectionNotFoundError: Connection \"default\" was not found.\n    at ConnectionManager.get (D:\\AAA\\PARKIR3\\server\\node_modules\\typeorm\\connection\\ConnectionManager.js:43:19)\n    at getRepository (D:\\AAA\\PARKIR3\\server\\node_modules\\typeorm\\globals.js:137:10)\n    at getAllUsers (D:\\AAA\\PARKIR3\\server\\dist\\controllers\\UserController.js:11:64)\n    at Layer.handle [as handle_request] (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at D:\\AAA\\PARKIR3\\server\\dist\\middleware\\checkRoleMiddleware.js:14:9\n    at Layer.handle [as handle_request] (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (D:\\AAA\\PARKIR3\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)","timestamp":"2025-03-12T21:42:48.983Z"}
 {"level":"error","message":"[500] Failed to fetch users","timestamp":"2025-03-12T21:42:48.993Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:07.886Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:07.948Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:55.506Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:49:43.547Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:49:47.580Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:00.860Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:09.787Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:09.818Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:34.615Z"}

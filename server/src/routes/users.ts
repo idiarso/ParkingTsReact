@@ -9,6 +9,9 @@ const router = Router();
 // Apply auth middleware to all user routes
 router.use(authenticate);
 
+// Create user - Only admin can access
+router.post('/', checkRole([UserRole.ADMIN]), UserController.createUser);
+
 // Get all users - Only admin can access
 router.get('/', checkRole([UserRole.ADMIN]), UserController.getAllUsers);
 

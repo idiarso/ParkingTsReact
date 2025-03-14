@@ -6,12 +6,13 @@ const router = Router();
 
 // Public routes
 router.post('/login', AuthController.login);
+router.post('/register-initial-admin', AuthController.register);
 
 // Protected routes - require authentication
-router.post('/logout', authenticate, AuthController.logout);
-router.post('/register', authenticate, AuthController.register);
-router.get('/me', authenticate, AuthController.me);
-router.post('/change-password', authenticate, AuthController.changePassword);
-router.put('/profile', authenticate, AuthController.updateProfile);
+router.use(authenticate);
+router.post('/logout', AuthController.logout);
+router.get('/me', AuthController.me);
+router.post('/change-password', AuthController.changePassword);
+router.put('/profile', AuthController.updateProfile);
 
 export default router; 

@@ -1918,3 +1918,53 @@
 {"level":"info","message":"Client connected: HPR0qaKCJnaZZBPiAACh","timestamp":"2025-03-14T10:36:17.421Z"}
 {"level":"info","message":"Client HPR0qaKCJnaZZBPiAACh registered as: gate-in","timestamp":"2025-03-14T10:36:17.424Z"}
 {"level":"info","message":"Connected clients: {\"total\":3,\"admin\":0,\"gateIn\":2,\"gateOut\":0}","timestamp":"2025-03-14T10:36:48.739Z"}
+{"database":"parking_system","host":"localhost","level":"info","message":"Attempting to connect to database with config:","port":"5432","timestamp":"2025-03-14T11:40:19.206Z","username":"postgres"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-14T11:40:20.141Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-14T11:40:20.145Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:07.886Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:07.948Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:41:19.226Z"}
+{"level":"info","message":"Client connected: smHbWO8gUhwoX-srAAAE","timestamp":"2025-03-14T11:41:42.476Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:41:55.506Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:42:19.236Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:43:19.282Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:44:19.287Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:45:19.293Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:46:19.299Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:47:19.309Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:48:19.311Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:49:19.314Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:49:43.547Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:49:47.580Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:00.860Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:09.787Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:09.818Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:50:19.326Z"}
+{"level":"error","message":"[401] Invalid or expired token","timestamp":"2025-03-14T11:50:34.615Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:51:19.335Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:52:19.344Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:53:19.356Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:54:19.360Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:55:19.373Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:56:19.380Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:57:19.380Z"}
+{"level":"info","message":"Connected clients: {\"total\":1,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T11:58:19.381Z"}
+{"database":"parking_system","host":"localhost","level":"info","message":"Attempting to connect to database with config:","port":"5432","timestamp":"2025-03-14T12:00:24.856Z","username":"postgres"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-14T12:00:25.130Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-14T12:00:25.133Z"}
+{"level":"info","message":"Client connected: Aas4z5FdMHwf4Um9AAAB","timestamp":"2025-03-14T12:00:39.308Z"}
+{"level":"info","message":"Client disconnected: Aas4z5FdMHwf4Um9AAAB","timestamp":"2025-03-14T12:01:06.335Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:01:24.871Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:02:24.877Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:03:24.883Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:04:24.891Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:05:24.908Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:06:24.933Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:07:24.947Z"}
+{"database":"parking_system","host":"localhost","level":"info","message":"Attempting to connect to database with config:","port":"5432","timestamp":"2025-03-14T12:28:34.555Z","username":"postgres"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-14T12:28:34.822Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-03-14T12:28:34.826Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:29:34.559Z"}
+{"database":"parking_system","host":"localhost","level":"info","message":"Attempting to connect to database with config:","port":"5432","timestamp":"2025-03-14T12:30:33.010Z","username":"postgres"}
+{"level":"info","message":"Database connection initialized","timestamp":"2025-03-14T12:30:33.192Z"}
+{"level":"info","message":"Connected clients: {\"total\":0,\"admin\":0,\"gateIn\":0,\"gateOut\":0}","timestamp":"2025-03-14T12:30:34.558Z"}

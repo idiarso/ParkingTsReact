@@ -95,10 +95,29 @@ export class AuthController {
 
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, username, password, role } = req.body;
+      const { name, username, password, role, secretKey } = req.body;
 
       if (!name || !username || !password) {
         return next(new AppError(400, 'Name, username and password are required'));
+      }
+      
+      // Para el registro inicial de admin, verificamos una clave secreta
+      if (role === 'admin') {
+        // La clave secreta puede ser definida como una variable de entorno o configuración
+        // Para simplificar, usamos una clave hardcodeada (debe cambiarse en producción)
+        const validSecretKey = process.env.ADMIN_SECRET_KEY || 'admin-setup-key-2024';
+        
+        if (!secretKey || secretKey !== validSecretKey) {
+          return next(new AppError(403, 'Invalid secret key for admin registration'));
+        }
+        
+        // Verificar si ya existe un admin en el sistema
+        const userRepository = AppDataSource.getRepository(User);
+        const existingAdmin = await userRepository.findOne({ where: { role: 'admin' } });
+        
+        if (existingAdmin && req.path === '/register-initial-admin') {
+          return next(new AppError(409, 'An admin user already exists'));
+        }
       }
 
       const userRepository = AppDataSource.getRepository(User);
@@ -114,7 +133,8 @@ export class AuthController {
         name,
         username,
         password,
-        role: role || 'operator' // Default role
+        role: role || 'operator', // Default role
+        isActive: true
       });
 
       await userRepository.save(user);

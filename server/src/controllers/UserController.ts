@@ -6,6 +6,44 @@ import { logger } from '../utils/logger';
 import { UserRole } from '../types/auth';
 
 export class UserController {
+  // Create new user
+  static async createUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { username, password, name, role } = req.body;
+      
+      // Validate required fields
+      if (!username || !password || !name) {
+        return next(new AppError(400, 'Username, password, and name are required'));
+      }
+      
+      const userRepository = AppDataSource.getRepository(User);
+      
+      // Check if username is already taken
+      const existingUser = await userRepository.findOne({ where: { username } });
+      if (existingUser) {
+        return next(new AppError(409, 'Username already exists'));
+      }
+      
+      // Create new user
+      const user = userRepository.create({
+        username,
+        password,
+        name,
+        role: role || UserRole.OPERATOR,
+        isActive: true
+      });
+      
+      await userRepository.save(user);
+      
+      // Return the created user without password
+      const { password: _, ...userWithoutPassword } = user;
+      return res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      logger.error('Error creating user:', error);
+      return next(new AppError(500, 'Failed to create user'));
+    }
+  }
+
   // Get all users
   static async getAllUsers(_req: Request, res: Response, next: NextFunction) {
     try {
